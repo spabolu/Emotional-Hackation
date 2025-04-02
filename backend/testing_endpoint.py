@@ -22,16 +22,33 @@
 # embedding = embedder.embed("Test text")
 # print(len(embedding))  # Prints the dimensionality of the embedding
 
+# import requests
+
+# url = "http://127.0.0.1:5000/add_journal_entry"
+# data = {
+#     "user_id": 1,
+#     "title": "A Reflective Day",
+#     "content": "Today I learned a lot about Flask and APIs."
+# }
+
+# response = requests.post(url, json=data)
+
+# print("Status Code:", response.status_code)
+# print("Response Text:", response.text)  # Print raw response to debug
+
+
 import requests
 
-url = "http://127.0.0.1:5000/add_journal_entry"
-data = {
-    "user_id": 1,
-    "title": "A Reflective Day",
-    "content": "Today I learned a lot about Flask and APIs."
-}
+# Define user_id to test
+user_id = 6  # Replace with an actual user ID from your database
 
-response = requests.post(url, json=data)
+# Define the API endpoint
+url = f"http://127.0.0.1:5000/summarize_latest_entry/{user_id}"
 
+# Send a POST request
+response = requests.post(url)
+
+# Print the response
 print("Status Code:", response.status_code)
-print("Response Text:", response.text)  # Print raw response to debug
+print("Response JSON:", response.json())
+

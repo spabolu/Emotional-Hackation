@@ -83,6 +83,49 @@ def home():
     </html>
     """
 
+@app.route("/summarize_latest_entry/<int:user_id>", methods=["POST"])
+def summarize_latest_entry(user_id):
+    # Check database connection
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+
+    # Fetch the most recent journal entry for the user
+    query = """
+        SELECT journal_id, content FROM journals
+        WHERE user_id = %s
+        ORDER BY entry_date DESC
+        LIMIT 1;
+    """
+    db_connection.execute_query(query, (user_id,))
+    result = db_connection.cursor.fetchone()
+
+    if not result:
+        return jsonify({"error": f"No journal entry found for user {user_id}"}), 404
+
+    journal_id, content = result
+
+    # Generate summary using OpenAI API
+    try:
+        gpt = LLM()
+        summary = gpt.ask(
+            f"Summarize this journal entry into a couple sentences while retaining its main themes but keeping it first person and ensuring privacy. Remove personal details and specifics: {content}"
+        )
+    except Exception as e:
+        return jsonify({"error": f"Error generating summary: {e}"}), 500
+
+    # Update the journal entry with the generated summary
+    try:
+        update_query = """
+            UPDATE journals
+            SET content_summary = %s
+            WHERE journal_id = %s;
+        """
+        db_connection.execute_query(update_query, (summary, journal_id))
+        return jsonify({"message": "Summary added successfully", "summary": summary}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error updating journal entry: {e}"}), 500
+
+
 # ----------------------------
 # Journal Companion / Chat Endpoints
 # ----------------------------
