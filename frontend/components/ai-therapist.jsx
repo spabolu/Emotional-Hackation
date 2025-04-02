@@ -117,12 +117,13 @@ export default function AiTherapist({ threadId = "", setThreadId, journalEntry =
             src={
               showGif
                 ? "/squirrel_therapist_new.gif" // Show GIF while generating response
-                : "/squirrel_smile_new.png" // Show still image otherwise
+                : "/squirrel_smile_scale.png" // Show still image otherwise
             }
             alt="Squirrel Companion"
-            className="w-80 h-80 object-contain transition-all duration-300"
-          />
-          <div className="absolute top-[60px] left-[320px] bg-white shadow-md rounded-2xl p-4 border border-teal-300 max-w-[300px] text-left">
+            className="w-96 h-96 object-contain transition-all duration-300"
+            />
+          <div className="absolute top-[80px] left-[350px] bg-white shadow-md rounded-2xl p-5 border border-teal-300 w-[500px] text-left text-[0.95rem] leading-relaxed"
+          >
             {isGenerating ? (
               <div className="flex space-x-1 justify-center">
                 <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
