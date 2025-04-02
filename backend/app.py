@@ -5,11 +5,13 @@ from llm import LLM
 import llm
 from db_connection import DatabaseConnection
 from datetime import datetime
+from flask_cors import CORS
 
 # Load environment variables from .env file if it exists
 load_dotenv()
 
 app = Flask(__name__)
+CORS(app)
 
 # Global DB connection (for endpoints using the database)
 db_connection = None
@@ -210,8 +212,10 @@ def ai_insights(id):
     except Exception as e:
         return jsonify({"error": f"Error inserting AI insight into database: {e}"}), 500
 
-@app.route("/add_journal_entry", methods=["POST"])
+@app.route("/add_journal_entry", methods=["POST", "OPTIONS"])
 def add_journal_entry():
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
     data = request.get_json()
 
     # Extract user_id, title, and content from request data
