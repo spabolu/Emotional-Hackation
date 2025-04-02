@@ -122,7 +122,7 @@ export default function AiTherapist({ threadId = "", setThreadId, journalEntry =
             alt="Squirrel Companion"
             className="w-80 h-80 object-contain transition-all duration-300"
           />
-          <div className="absolute top-[100px] left-[240px] bg-white shadow-md rounded-xl p-3 border border-teal-300 max-w-[250px]">
+          <div className="absolute top-[60px] left-[320px] bg-white shadow-md rounded-2xl p-4 border border-teal-300 max-w-[300px] text-left">
             {isGenerating ? (
               <div className="flex space-x-1 justify-center">
                 <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
