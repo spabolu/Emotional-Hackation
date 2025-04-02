@@ -34,41 +34,71 @@ const AI_RESPONSES = [
 export default function AiTherapist() {
   const [input, setInput] = useState("")
   const [aiMessage, setAiMessage] = useState(
-    "Hi there! I'm your squirrel companion. Let’s reflect together!"
+    "Hi there! I'm your squirrel companion. Let's reflect together!"
   )
   const [isTyping, setIsTyping] = useState(false)
-  const [isGenerating, setIsGenerating] = useState(false) // New state for response generation
-  const [showGif, setShowGif] = useState(false) // Tracks if GIF should be displayed
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [showGif, setShowGif] = useState(false)
+  const [threadId, setThreadId] = useState("thread_1ZtkgumkEA1re5OIdxfw0TRc") // hardcoded to test user
 
-
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return
+    const userMessage = input.trim()
     setInput("")
-    setIsGenerating(true) // Start generating response
-    setShowGif(true) // Show GIF while generating
+    setIsGenerating(true)
+    setShowGif(true)
 
+    try {
+      const response = await fetch('http://127.0.0.1:5000/chat', {  // Updated URL to point to Flask backend
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Thread-ID': threadId || '',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      });
 
-
-    setTimeout(() => {
-      const randomResponse =
-        AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)]
-      setAiMessage(randomResponse)
-      setIsGenerating(false) // Stop generating response
-      // Revert to still image after a short delay
-      setTimeout(() => {
-        setShowGif(false)
-        setIsTyping(true) // Enable typing phase
-      }, 1000) // Adjust delay as needed
-    }, 1500) // Simulate response generation time
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Store thread ID for conversation continuity
+        if (data.thread_id) {
+          setThreadId(data.thread_id);
+        }
+        
+        // Add slight delay for natural interaction
+        setTimeout(() => {
+          setAiMessage(data.response);
+          setIsGenerating(false);
+          
+          // Switch back to still image after response is shown
+          setTimeout(() => {
+            setShowGif(false);
+            setIsTyping(false); // Allow user to type again
+          }, 1000);
+        }, 1000);
+      } else {
+        console.error('Error from server:', data.error);
+        setAiMessage("Sorry, I encountered an error. Please try again.");
+        setIsGenerating(false);
+        setShowGif(false);
+        setIsTyping(false);
+      }
+    } catch (error) {
+      console.error('Network error:', error);
+      setAiMessage("Sorry, I couldn't connect to the server. Please check your connection.");
+      setIsGenerating(false);
+      setShowGif(false);
+      setIsTyping(false);
+    }
   }
 
   const resetConversation = () => {
-    setAiMessage("Hi there! I'm your squirrel companion. Let’s reflect together!")
+    setAiMessage("Hi there! I'm your squirrel companion. Let's reflect together!")
     setIsTyping(false)
     setIsGenerating(false)
     setShowGif(false)
-
+    setThreadId("") // Clear thread ID for new conversation
   }
 
   return (
