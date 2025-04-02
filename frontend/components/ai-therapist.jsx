@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -13,14 +13,36 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Send, RefreshCw } from "lucide-react"
 
-export default function AiTherapist() {
+export default function AiTherapist({ threadId = "", setThreadId, journalEntry = "" }) {
   const [input, setInput] = useState("")
   const [aiMessage, setAiMessage] = useState(
     "Hi there! I'm your squirrel companion. Let's reflect together!"
   )
   const [isGenerating, setIsGenerating] = useState(false)
   const [showGif, setShowGif] = useState(false)
-  const [threadId, setThreadId] = useState("thread_1ZtkgumkEA1re5OIdxfw0TRc") // hardcoded to test user 1
+  const [internalThreadId, setInternalThreadId] = useState(threadId)
+
+  // Update internal thread ID when prop changes
+  useEffect(() => {
+    setInternalThreadId(threadId);
+  }, [threadId]);
+
+  // Display initial response based on journal entry if available
+  useEffect(() => {
+    if (journalEntry && !isGenerating) {
+      setIsGenerating(true);
+      setShowGif(true);
+      
+      setTimeout(() => {
+        setAiMessage("I see you've written a journal entry. How are you feeling about what you wrote?");
+        setIsGenerating(false);
+        
+        setTimeout(() => {
+          setShowGif(false);
+        }, 1000);
+      }, 1500);
+    }
+  }, [journalEntry]);
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -30,12 +52,17 @@ export default function AiTherapist() {
     setShowGif(true)
 
     try {
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (internalThreadId) {
+        headers['X-Thread-ID'] = internalThreadId;
+      }
+
       const response = await fetch('http://127.0.0.1:5000/chat', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Thread-ID': threadId || '',
-        },
+        headers: headers,
         body: JSON.stringify({ message: userMessage }),
       });
 
@@ -43,7 +70,8 @@ export default function AiTherapist() {
       
       if (response.ok) {
         if (data.thread_id) {
-          setThreadId(data.thread_id);
+          setInternalThreadId(data.thread_id);
+          if (setThreadId) setThreadId(data.thread_id);
         }
         
         setTimeout(() => {
@@ -72,7 +100,8 @@ export default function AiTherapist() {
     setAiMessage("Hi there! I'm your squirrel companion. Let's reflect together!")
     setIsGenerating(false)
     setShowGif(false)
-    setThreadId("")
+    setInternalThreadId("")
+    if (setThreadId) setThreadId("");
   }
 
   return (

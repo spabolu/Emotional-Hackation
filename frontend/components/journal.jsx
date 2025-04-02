@@ -32,6 +32,7 @@ export default function Journal() {
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAiTherapist, setShowAiTherapist] = useState(false); // State to control AI Therapist visibility
+  const [threadId, setThreadId] = useState(''); // Added to track the thread ID
 
   useEffect(() => {
     const savedEntries = localStorage.getItem('journalEntries');
@@ -86,25 +87,36 @@ export default function Journal() {
     setEntries(newEntries);
     localStorage.setItem('journalEntries', JSON.stringify(newEntries));
 
-    // Prepare data to send to the API
+    // Prepare data to send to the API with the new structure
     const data = {
-      user_id: 1, // Replace with the actual user ID
-      title: currentEntry.title,
-      content: currentEntry.content,
+      entry: currentEntry.content, // Changed to match expected API format
     };
 
     try {
-      // Send data to the API endpoint
-      const response = await fetch('http://127.0.0.1:5000/add_journal_entry', {
+      // Send data to the new API endpoint with thread_id in header if available
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (threadId) {
+        headers['X-Thread-ID'] = threadId;
+      }
+
+      const response = await fetch('http://127.0.0.1:5000/journal-entry', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         throw new Error('Failed to save journal entry');
+      }
+
+      const responseData = await response.json();
+      
+      // Save the thread ID for future conversations
+      if (responseData.thread_id) {
+        setThreadId(responseData.thread_id);
       }
 
       console.log('Journal entry saved successfully');
@@ -121,7 +133,7 @@ export default function Journal() {
           <div>
             <CardTitle>Journal</CardTitle>
             <CardDescription>
-              Write about your day, thoughts, and feelings.
+              Write about your day, thoughts, and feelings...
             </CardDescription>
           </div>
           <Popover>
@@ -185,8 +197,14 @@ export default function Journal() {
           </Button>
         </CardFooter>
       </Card>
-      {/* Conditionally render AiTherapist */}
-      {showAiTherapist && <AiTherapist />}
+      {/* Pass threadId and journalEntry to AiTherapist */}
+      {showAiTherapist && (
+        <AiTherapist 
+          threadId={threadId} 
+          setThreadId={setThreadId}
+          journalEntry={currentEntry.content}
+        />
+      )}
     </div>
   );
 }
