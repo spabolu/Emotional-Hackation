@@ -1,10 +1,13 @@
 from flask import Flask, jsonify
 from db_connection import DatabaseConnection
+from text_embedder import TextEmbedder
 from llm import LLM
 from datetime import datetime
+import json
 
 app = Flask(__name__)
 db_connection = None    # to connect to psql database
+embedder = None
 
 @app.route('/')
 def home():
@@ -65,18 +68,23 @@ def ai_insights(id):
     except Exception as e:
         return jsonify({"error": f"Error generating AI insight: {e}"}), 500
 
-    # Insert the AI-generated insight into the database
+    # Generate embedding for the insight
+    try:
+        embedding = embedder.embed(insight_text)
+    except Exception as e:
+        return jsonify({"error": f"Error generating embedding: {e}"}), 500
+
+    # Insert the AI-generated insight and serialized embedding into the database
     try:
         insert_query = """
-            INSERT INTO ai_insight (user_id, insights, insight_date)
-            VALUES (%s, %s, %s);
+            INSERT INTO ai_insight (user_id, insights, insight_date, embedding)
+            VALUES (%s, %s, %s, %s);
         """
-        db_connection.execute_query(insert_query, (id, insight_text, datetime.now()))
+        db_connection.execute_query(insert_query, (id, insight_text, datetime.now(), embedding))
 
-        return jsonify({"message": "AI insight added successfully", "insight": insight_text}), 200
+        return jsonify({"message": "AI insight added successfully", "insight": insight_text, "embedding": embedding}), 200
     except Exception as e:
         return jsonify({"error": f"Error inserting AI insight into database: {e}"}), 500
-
 
 # Utility Method to establish DB connection when sever starts
 def initialize_db_connection():
@@ -96,6 +104,7 @@ def close_db_connection():
         db_connection.close()
     
 if __name__ == "__main__":
+    embedder = TextEmbedder()
     initialize_db_connection()
     app.run(debug=False, use_reloader=False)
     close_db_connection()
