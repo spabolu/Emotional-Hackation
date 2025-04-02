@@ -24,25 +24,20 @@ try:
     # Create a cursor object
     cursor = conn.cursor()
     
-    cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
-    tables = cursor.fetchall()
-    print("📌 Tables in the database:", tables)
-
-
-    TABLE_NAME = '"Snowman"'
-    # Execute the query to fetch all rows
-    query = f"SELECT * FROM {TABLE_NAME};"
-    cursor.execute(query)
-
-    # Fetch all results
-    rows = cursor.fetchall()
-
-    # Print each row
-    print(f"\n📌 Rows from {TABLE_NAME}:")
-    for row in rows:
-        print(row)
+    create_table_query = '''
+    CREATE TABLE IF NOT EXISTS ai_insight (
+        ai_insight_id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(user_id) ON DELETE CASCADE,
+        insights TEXT,
+        insight_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    '''
     
-
+    # Execute the table creation query
+    cursor.execute(create_table_query)
+    print("✅ Tables created successfully (if not already exists).")
+    conn.commit()  
+    
     # Close the connection
     cursor.close()
     conn.close()
