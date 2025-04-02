@@ -41,7 +41,7 @@ export default function Page() {
       <ArticlePage />
 
       <div className="w-full max-w-2xl mt-9">
-        <div className="my-6">
+        {/* <div className="my-6">
           <h3 className="text-3xl text-center font-semibold">
             Satellite-based Predictive Timelapse
           </h3>
@@ -50,9 +50,9 @@ export default function Page() {
             track activities of landscape, understanding future sustainbility
             practices.
           </p>
-        </div>
+        </div> */}
         <div className="input input-bordered flex items-center gap-2">
-          <input
+          {/* <input
             type="text"
             className="grow"
             placeholder="Search"
@@ -63,23 +63,24 @@ export default function Page() {
                 handleSearch();
               }
             }}
-          />
-          <button
+          /> */}
+          {/* <button
             className="hover:opacity-70 opacity-80"
             onClick={handleSearch}
           >
             <SendHorizontal />
-          </button>
+          </button> */}
         </div>
       </div>
-      <div className="p-4">
+
+      {/* <div className="p-4">
         <iframe
           width="800"
           height="600"
           src={`https://earthengine.google.com/iframes/timelapse_player_embed.html#v=${coordinates.lat},${coordinates.lng},12.433,latLng&t=3.45&ps=50&bt=19840101&et=20221231`}
           allowFullScreen
         />
-      </div>
+      </div> */}
     </div>
   );
 }

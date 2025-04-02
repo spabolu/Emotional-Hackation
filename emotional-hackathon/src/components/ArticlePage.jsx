@@ -1,43 +1,53 @@
-// src/components/FeedbackPage.jsx
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import ArticleCards from "./ArticleCards";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
+import ArticleCards from './ArticleCards';
 
 const ArticlePage = () => {
   const [articles, setArticles] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
+  const [userResponse, setUserResponse] = useState('');
+  const router = useRouter(); // Initialize useRouter
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
-        const res = await fetch("/api/postsArticles");
-        if (!res.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await res.json();
-        setArticles(data);
-      } catch (error) {
-        console.error("Error fetching feedbacks:", error);
-        setError("Failed to load feedbacks.");
-      }
-    };
-    fetchArticles();
-  }, []);
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    console.log('User Response:', userResponse);
+    // Add logic to send the response to a backend or process it further
+    setUserResponse(''); // Clear the input after submission
+
+    // Navigate to the /about page
+    router.push('/about');
+  };
+
+  const currentDate = new Date().toLocaleDateString();
 
   return (
     <div>
-      {error && <p>{error}</p>}
       <div className="my-6">
-        <h3 className="text-3xl text-center font-semibold">
-          AI Explains News & Research
-        </h3>
-        <p className="text-center max-w-xl mx-auto">
-          View published articles relevant to mining activites and their impact
-          on local communities and the environment. AI provides an snapshot of
-          these articles to help understand the content.
-        </p>
+        <h3 className="text-3xl text-center font-semibold">Journal</h3>
+        <p className="text-center text-gray-500">{currentDate}</p>
+        <p className="text-center max-w-xl mx-auto mt-4"></p>
       </div>
+
+      <div className="my-6 max-w-xl mx-auto">
+        <form onSubmit={handleSubmit}>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded-md"
+            rows="4"
+            placeholder="Write your thoughts here..."
+            value={userResponse}
+            onChange={(e) => setUserResponse(e.target.value)}
+          ></textarea>
+          <button
+            type="submit"
+            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          >
+            Submit
+          </button>
+        </form>
+      </div>
+
       <ArticleCards articleData={articles} />
     </div>
   );

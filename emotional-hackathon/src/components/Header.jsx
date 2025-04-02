@@ -28,17 +28,17 @@ const Header = () => {
           Forum
         </Link>
         <Link
-          href="/data"
+          href="/journal"
           className="font-medium text-white transition-all focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          Data
+          Journal
         </Link>
 
         <Link
-          href="/about"
+          href="/journalAI"
           className="font-medium text-white transition-all focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          About
+          journalAI 
         </Link>
       </div>
     </nav>
