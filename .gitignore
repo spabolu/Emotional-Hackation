@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/python,flask,react,node,macos,windows,nextjs,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,flask,react,node,macos,windows,nextjs,linux
 
+*.lock
+backend/uv.lock
+
 ### Flask ###
 instance/*
 !instance/.gitignore

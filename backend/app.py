@@ -1,8 +1,8 @@
 import os
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
-import llm
 from llm import LLM
+import llm
 from db_connection import DatabaseConnection
 from datetime import datetime
 
@@ -19,15 +19,63 @@ THREAD_ID_HEADER = 'X-Thread-ID'
 
 @app.route('/')
 def home():
-    return (
-        "Journal Companion API is running.\n"
-        "Available endpoints:\n"
-        " - /journal-entry [POST] (for chat-style journal entries using header thread IDs)\n"
-        " - /chat [POST] (for chat messages, requires thread ID header)\n"
-        " - /users/<id> [GET] (retrieve user by ID)\n"
-        " - /add_ai_insight/<id> [POST] (generate AI insight using recent journal entries)\n"
-        " - /add_journal_entry [POST] (add a journal entry to the database)"
-    )
+    return """
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Journal Companion API</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                background-color: #f4f4f4;
+                margin: 40px;
+            }
+            .container {
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 5px;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            }
+            h1 {
+                color: #333;
+            }
+            ul {
+                list-style-type: none;
+                padding: 0;
+            }
+            li {
+                margin: 5px 0;
+                padding: 5px;
+                border-bottom: 1px solid #eee;
+            }
+            li:last-child {
+                border-bottom: none;
+            }
+            a {
+                color: #007BFF;
+                text-decoration: none;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Journal Companion API is running.</h1>
+            <p>Available endpoints:</p>
+            <ul>
+                <li><strong>POST</strong> <a href="/journal-entry">/journal-entry</a> (for chat-style journal entries using header thread IDs)</li>
+                <li><strong>POST</strong> <a href="/chat">/chat</a> (for chat messages, requires thread ID header)</li>
+                <li><strong>GET</strong> <a href="/users/&lt;id&gt;">/users/&lt;id&gt;</a> (retrieve user by ID)</li>
+                <li><strong>POST</strong> <a href="/add_ai_insight/&lt;id&gt;">/add_ai_insight/&lt;id&gt;</a> (generate AI insight using recent journal entries)</li>
+                <li><strong>POST</strong> <a href="/add_journal_entry">/add_journal_entry</a> (add a journal entry to the database)</li>
+            </ul>
+        </div>
+    </body>
+    </html>
+    """
 
 # ----------------------------
 # Journal Companion / Chat Endpoints
