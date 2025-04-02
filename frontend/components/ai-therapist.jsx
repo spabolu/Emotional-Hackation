@@ -37,22 +37,38 @@ export default function AiTherapist() {
     "Hi there! I'm your squirrel companion. Let’s reflect together!"
   )
   const [isTyping, setIsTyping] = useState(false)
+  const [isGenerating, setIsGenerating] = useState(false) // New state for response generation
+  const [showGif, setShowGif] = useState(false) // Tracks if GIF should be displayed
+
+
 
   const handleSend = () => {
     if (!input.trim()) return
     setInput("")
-    setIsTyping(true)
+    setIsGenerating(true) // Start generating response
+    setShowGif(true) // Show GIF while generating
+
+
 
     setTimeout(() => {
       const randomResponse =
         AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)]
       setAiMessage(randomResponse)
-      setIsTyping(false)
-    }, 1500)
+      setIsGenerating(false) // Stop generating response
+      // Revert to still image after a short delay
+      setTimeout(() => {
+        setShowGif(false)
+        setIsTyping(true) // Enable typing phase
+      }, 1000) // Adjust delay as needed
+    }, 1500) // Simulate response generation time
   }
 
   const resetConversation = () => {
     setAiMessage("Hi there! I'm your squirrel companion. Let’s reflect together!")
+    setIsTyping(false)
+    setIsGenerating(false)
+    setShowGif(false)
+
   }
 
   return (
@@ -65,12 +81,16 @@ export default function AiTherapist() {
       <CardContent className="flex flex-col items-center justify-center p-6 min-h-[400px]">
         <div className="relative">
           <img
-            src={isTyping ? "/squirrel_smile.png" : "/squirrel_therapist.gif"}
+            src={
+              showGif
+                ? "/squirrel_therapist.gif" // Show GIF while generating response
+                : "/squirrel_smile.png" // Show still image otherwise
+            }
             alt="Squirrel Companion"
             className="w-80 h-80 object-contain transition-all duration-300"
           />
           <div className="absolute top-[100px] left-[240px] bg-white shadow-md rounded-xl p-3 border border-teal-300 max-w-[250px]">
-            {isTyping ? (
+            {isGenerating ? (
               <div className="flex space-x-1 justify-center">
                 <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
                 <div
