@@ -9,7 +9,7 @@ def home():
     return 'Hello from Flask 3.9!'
 
 @app.route("/users/<int:id>", methods=["GET"])
-def movie(id):
+def users(id):
     # check database connection 
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
