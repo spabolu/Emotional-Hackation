@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
+import GratitudeTracker from '@/components/gratitude-tracker';
+
 
 const MOOD_EMOJIS = {
   great: { emoji: "😄", color: "bg-green-100 hover:bg-green-200" },
@@ -77,7 +79,9 @@ export default function MoodTracker() {
       <Card className="border-teal-200 bg-white/80">
         <CardHeader>
           <CardTitle>How are you feeling today?</CardTitle>
-          <CardDescription>Track your mood to identify patterns over time.</CardDescription>
+          <CardDescription>
+            Track your mood to identify patterns over time.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between">
@@ -86,9 +90,9 @@ export default function MoodTracker() {
                 key={mood}
                 variant="outline"
                 className={cn(
-                  "h-12 w-12 rounded-full text-2xl",
+                  'h-12 w-12 rounded-full text-2xl',
                   color,
-                  selectedMood === mood && "ring-2 ring-teal-500 ring-offset-2",
+                  selectedMood === mood && 'ring-2 ring-teal-500 ring-offset-2'
                 )}
                 onClick={() => setSelectedMood(mood)}
               >
@@ -104,16 +108,22 @@ export default function MoodTracker() {
             onChange={(e) => setNote(e.target.value)}
           />
 
-          <Button className="w-full bg-teal-600 hover:bg-teal-700" onClick={saveMoodEntry} disabled={!selectedMood}>
+          <Button
+            className="w-full bg-teal-600 hover:bg-teal-700"
+            onClick={saveMoodEntry}
+            disabled={!selectedMood}
+          >
             Save Mood
           </Button>
         </CardContent>
       </Card>
-
+      <GratitudeTracker />
       <Card className="border-teal-200 bg-white/80">
         <CardHeader>
           <CardTitle>Mood Calendar</CardTitle>
-          <CardDescription>View your mood history and patterns.</CardDescription>
+          <CardDescription>
+            View your mood history and patterns.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Calendar
@@ -126,27 +136,37 @@ export default function MoodTracker() {
             }}
             modifiersStyles={{
               booked: {
-                fontWeight: "bold",
+                fontWeight: 'bold',
               },
             }}
             components={{
               DayContent: ({ day }) => {
                 if (!day || !day.date) {
-                  return <div className="flex h-full w-full items-center justify-center">{day?.day || ""}</div>
+                  return (
+                    <div className="flex h-full w-full items-center justify-center">
+                      {day?.day || ''}
+                    </div>
+                  );
                 }
 
-                const entry = moodEntries.find((e) => e.date.toDateString() === day.date.toDateString())
+                const entry = moodEntries.find(
+                  (e) => e.date.toDateString() === day.date.toDateString()
+                );
 
                 return (
                   <div className="flex h-full w-full items-center justify-center">
-                    {entry ? <span>{MOOD_EMOJIS[entry.mood].emoji}</span> : day.date.getDate()}
+                    {entry ? (
+                      <span>{MOOD_EMOJIS[entry.mood].emoji}</span>
+                    ) : (
+                      day.date.getDate()
+                    )}
                   </div>
-                )
+                );
               },
             }}
           />
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
