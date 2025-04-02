@@ -1,13 +1,18 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { useState } from "react"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, RefreshCw } from "lucide-react"
 
-// Predefined responses for the AI therapist
 const AI_RESPONSES = [
   "How does that make you feel?",
   "That's interesting. Can you tell me more about that?",
@@ -27,134 +32,77 @@ const AI_RESPONSES = [
 ]
 
 export default function AiTherapist() {
-  const [messages, setMessages] = useState([
-    {
-      id: "welcome",
-      content: "Hi there! I'm your AI companion. How are you feeling today?",
-      sender: "ai",
-      timestamp: new Date(),
-    },
-  ])
   const [input, setInput] = useState("")
+  const [aiMessage, setAiMessage] = useState(
+    "Hi there! I'm your squirrel companion. Let’s reflect together!"
+  )
   const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef(null)
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages])
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
 
   const handleSend = () => {
     if (!input.trim()) return
-
-    // Add user message
-    const userMessage = {
-      id: Date.now().toString(),
-      content: input,
-      sender: "user",
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsTyping(true)
 
-    // Simulate AI thinking and responding
     setTimeout(() => {
-      const randomResponse = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)]
-
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        content: randomResponse,
-        sender: "ai",
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, aiMessage])
+      const randomResponse =
+        AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)]
+      setAiMessage(randomResponse)
       setIsTyping(false)
     }, 1500)
   }
 
   const resetConversation = () => {
-    setMessages([
-      {
-        id: "welcome",
-        content: "Hi there! I'm your AI companion. How are you feeling today?",
-        sender: "ai",
-        timestamp: new Date(),
-      },
-    ])
+    setAiMessage("Hi there! I'm your squirrel companion. Let’s reflect together!")
   }
 
   return (
-    <Card className="border-teal-200 bg-white/80">
+    <Card className="border-teal-200 bg-white/80 text-center mt-6">
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <Avatar className="h-10 w-10 border-2 border-teal-200">
-            <AvatarImage src="/placeholder.svg?height=40&width=40" alt="AI Therapist" />
-            <AvatarFallback className="bg-teal-500 text-white">AI</AvatarFallback>
-          </Avatar>
-          <div>
-            <CardTitle>AI Companion</CardTitle>
-            <CardDescription>Chat with your supportive AI friend anytime.</CardDescription>
+        <CardTitle>Squirrel Companion</CardTitle>
+        <CardDescription>Your reflective journal buddy 🐿️</CardDescription>
+      </CardHeader>
+
+      <CardContent className="flex flex-col items-center justify-center p-6 min-h-[400px]">
+        <div className="relative">
+          <img
+            src={isTyping ? "/squirrel_smile.png" : "/squirrel_therapist.gif"}
+            alt="Squirrel Companion"
+            className="w-80 h-80 object-contain transition-all duration-300"
+          />
+          <div className="absolute top-[100px] left-[240px] bg-white shadow-md rounded-xl p-3 border border-teal-300 max-w-[250px]">
+            {isTyping ? (
+              <div className="flex space-x-1 justify-center">
+                <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+                <div
+                  className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                  style={{ animationDelay: "0.2s" }}
+                ></div>
+                <div
+                  className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+                  style={{ animationDelay: "0.4s" }}
+                ></div>
+              </div>
+            ) : (
+              <p className="text-sm">{aiMessage}</p>
+            )}
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[400px] overflow-y-auto rounded-md border border-teal-100 bg-white p-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`mb-4 flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[80%] rounded-lg p-3 ${
-                  message.sender === "user" ? "bg-teal-500 text-white" : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                <p>{message.content}</p>
-                <p className="mt-1 text-right text-xs opacity-70">
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
-              </div>
-            </div>
-          ))}
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-lg bg-gray-100 p-3 text-gray-800">
-                <div className="flex space-x-1">
-                  <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
-                  <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
-                  <div
-                    className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
-                    style={{ animationDelay: "0.4s" }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
       </CardContent>
+
       <CardFooter className="flex flex-col gap-4">
         <div className="flex w-full items-center space-x-2">
           <Input
-            placeholder="Type your message..."
+            placeholder="Say something..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
             className="flex-1"
           />
-          <Button onClick={handleSend} className="bg-teal-600 hover:bg-teal-700" disabled={!input.trim() || isTyping}>
+          <Button
+            onClick={handleSend}
+            disabled={!input.trim() || isTyping}
+            className="bg-teal-600 hover:bg-teal-700"
+          >
             <Send className="h-4 w-4" />
           </Button>
         </div>
