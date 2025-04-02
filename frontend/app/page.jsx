@@ -52,7 +52,7 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="discover" className="space-y-4">
-            <AiTherapist />
+            {}
           </TabsContent>
         </Tabs>
       </main>
