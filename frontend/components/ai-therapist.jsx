@@ -7,13 +7,6 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Send, RefreshCw } from "lucide-react"
 
-type Message = {
-  id: string
-  content: string
-  sender: "user" | "ai"
-  timestamp: Date
-}
-
 // Predefined responses for the AI therapist
 const AI_RESPONSES = [
   "How does that make you feel?",
@@ -34,7 +27,7 @@ const AI_RESPONSES = [
 ]
 
 export default function AiTherapist() {
-  const [messages, setMessages] = useState<Message[]>([
+  const [messages, setMessages] = useState([
     {
       id: "welcome",
       content: "Hi there! I'm your AI companion. How are you feeling today?",
@@ -44,7 +37,7 @@ export default function AiTherapist() {
   ])
   const [input, setInput] = useState("")
   const [isTyping, setIsTyping] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef(null)
 
   useEffect(() => {
     scrollToBottom()
@@ -58,7 +51,7 @@ export default function AiTherapist() {
     if (!input.trim()) return
 
     // Add user message
-    const userMessage: Message = {
+    const userMessage = {
       id: Date.now().toString(),
       content: input,
       sender: "user",
@@ -73,7 +66,7 @@ export default function AiTherapist() {
     setTimeout(() => {
       const randomResponse = AI_RESPONSES[Math.floor(Math.random() * AI_RESPONSES.length)]
 
-      const aiMessage: Message = {
+      const aiMessage = {
         id: (Date.now() + 1).toString(),
         content: randomResponse,
         sender: "ai",
@@ -173,4 +166,3 @@ export default function AiTherapist() {
     </Card>
   )
 }
-

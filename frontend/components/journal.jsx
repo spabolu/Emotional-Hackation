@@ -10,28 +10,21 @@ import { format } from "date-fns"
 import { Save, CalendarIcon, FileText } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
-type JournalEntry = {
-  id: string
-  title: string
-  content: string
-  date: Date
-}
-
 export default function Journal() {
-  const [entries, setEntries] = useState<JournalEntry[]>([])
-  const [currentEntry, setCurrentEntry] = useState<JournalEntry>({
+  const [entries, setEntries] = useState([])
+  const [currentEntry, setCurrentEntry] = useState({
     id: Date.now().toString(),
     title: "",
     content: "",
     date: new Date(),
   })
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [selectedDate, setSelectedDate] = useState(new Date())
 
   useEffect(() => {
     const savedEntries = localStorage.getItem("journalEntries")
     if (savedEntries) {
       setEntries(
-        JSON.parse(savedEntries).map((entry: any) => ({
+        JSON.parse(savedEntries).map((entry) => ({
           ...entry,
           date: new Date(entry.date),
         })),
@@ -52,7 +45,7 @@ export default function Journal() {
     }
   }, [selectedDate])
 
-  const findEntryForDate = (date: Date): JournalEntry | undefined => {
+  const findEntryForDate = (date) => {
     return entries.find((entry) => entry.date.toDateString() === date.toDateString())
   }
 
@@ -74,7 +67,7 @@ export default function Journal() {
     localStorage.setItem("journalEntries", JSON.stringify(newEntries))
   }
 
-  const handleDateSelect = (date: Date | undefined) => {
+  const handleDateSelect = (date) => {
     if (!date) return
     setSelectedDate(date)
   }
@@ -138,4 +131,3 @@ export default function Journal() {
     </Card>
   )
 }
-

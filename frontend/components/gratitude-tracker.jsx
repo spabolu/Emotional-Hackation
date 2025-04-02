@@ -6,21 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Trash2, Plus, Heart } from "lucide-react"
 
-type GratitudeEntry = {
-  id: string
-  text: string
-  date: Date
-}
-
 export default function GratitudeTracker() {
-  const [entries, setEntries] = useState<GratitudeEntry[]>([])
+  const [entries, setEntries] = useState([])
   const [newEntry, setNewEntry] = useState("")
 
   useEffect(() => {
     const savedEntries = localStorage.getItem("gratitudeEntries")
     if (savedEntries) {
       setEntries(
-        JSON.parse(savedEntries).map((entry: any) => ({
+        JSON.parse(savedEntries).map((entry) => ({
           ...entry,
           date: new Date(entry.date),
         })),
@@ -31,7 +25,7 @@ export default function GratitudeTracker() {
   const addEntry = () => {
     if (!newEntry.trim()) return
 
-    const entry: GratitudeEntry = {
+    const entry = {
       id: Date.now().toString(),
       text: newEntry,
       date: new Date(),
@@ -43,7 +37,7 @@ export default function GratitudeTracker() {
     setNewEntry("")
   }
 
-  const deleteEntry = (id: string) => {
+  const deleteEntry = (id) => {
     const updatedEntries = entries.filter((entry) => entry.id !== id)
     setEntries(updatedEntries)
     localStorage.setItem("gratitudeEntries", JSON.stringify(updatedEntries))
@@ -100,4 +94,3 @@ export default function GratitudeTracker() {
     </Card>
   )
 }
-

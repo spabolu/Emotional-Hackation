@@ -7,14 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 
-type Mood = "great" | "good" | "okay" | "bad" | "awful" | null
-type MoodEntry = {
-  date: Date
-  mood: Mood
-  note: string
-}
-
-const MOOD_EMOJIS: Record<string, { emoji: string; color: string }> = {
+const MOOD_EMOJIS = {
   great: { emoji: "😄", color: "bg-green-100 hover:bg-green-200" },
   good: { emoji: "🙂", color: "bg-teal-100 hover:bg-teal-200" },
   okay: { emoji: "😐", color: "bg-yellow-100 hover:bg-yellow-200" },
@@ -23,23 +16,22 @@ const MOOD_EMOJIS: Record<string, { emoji: string; color: string }> = {
 }
 
 export default function MoodTracker() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [selectedMood, setSelectedMood] = useState<Mood>(null)
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  const [selectedMood, setSelectedMood] = useState(null)
   const [note, setNote] = useState("")
-  const [moodEntries, setMoodEntries] = useState<MoodEntry[]>([])
+  const [moodEntries, setMoodEntries] = useState([])
 
   useEffect(() => {
     const savedEntries = localStorage.getItem("moodEntries")
     if (savedEntries) {
       setMoodEntries(
-        JSON.parse(savedEntries).map((entry: any) => ({
+        JSON.parse(savedEntries).map((entry) => ({
           ...entry,
           date: new Date(entry.date),
         })),
       )
     }
 
-    // Check if there's an entry for the selected date
     const todayEntry = findEntryForDate(selectedDate)
     if (todayEntry) {
       setSelectedMood(todayEntry.mood)
@@ -50,7 +42,7 @@ export default function MoodTracker() {
     }
   }, [selectedDate])
 
-  const findEntryForDate = (date: Date): MoodEntry | undefined => {
+  const findEntryForDate = (date) => {
     return moodEntries.find((entry) => entry.date.toDateString() === date.toDateString())
   }
 
@@ -98,7 +90,7 @@ export default function MoodTracker() {
                   color,
                   selectedMood === mood && "ring-2 ring-teal-500 ring-offset-2",
                 )}
-                onClick={() => setSelectedMood(mood as Mood)}
+                onClick={() => setSelectedMood(mood)}
               >
                 {emoji}
               </Button>
@@ -139,7 +131,6 @@ export default function MoodTracker() {
             }}
             components={{
               DayContent: ({ day }) => {
-                // Make sure day and day.date exist before trying to use them
                 if (!day || !day.date) {
                   return <div className="flex h-full w-full items-center justify-center">{day?.day || ""}</div>
                 }
@@ -159,4 +150,3 @@ export default function MoodTracker() {
     </div>
   )
 }
-
