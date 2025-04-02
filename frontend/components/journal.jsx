@@ -64,7 +64,12 @@ export default function Journal() {
     );
   };
 
-  const saveEntry = () => {
+  const handleDateSelect = (date) => {
+    if (!date) return;
+    setSelectedDate(date);
+  };
+
+  const saveEntry = async () => {
     if (!currentEntry.content.trim()) return;
 
     const newEntries = [...entries];
@@ -80,12 +85,33 @@ export default function Journal() {
 
     setEntries(newEntries);
     localStorage.setItem('journalEntries', JSON.stringify(newEntries));
-    setShowAiTherapist(true); // Show AI Therapist after saving the entry
-  };
 
-  const handleDateSelect = (date) => {
-    if (!date) return;
-    setSelectedDate(date);
+    // Prepare data to send to the API
+    const data = {
+      user_id: 1, // Replace with the actual user ID
+      title: currentEntry.title,
+      content: currentEntry.content,
+    };
+
+    try {
+      // Send data to the API endpoint
+      const response = await fetch('http://127.0.0.1:5000/add_journal_entry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save journal entry');
+      }
+
+      console.log('Journal entry saved successfully');
+      setShowAiTherapist(true); // Show AI Therapist after saving the entry
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+    }
   };
 
   return (
@@ -112,7 +138,7 @@ export default function Journal() {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={handleDateSelect}
+                onSelect={handleDateSelect} // Use handleDateSelect here
                 initialFocus
                 modifiers={{
                   booked: entries.map((entry) => entry.date),
