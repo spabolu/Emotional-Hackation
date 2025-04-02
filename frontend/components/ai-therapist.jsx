@@ -85,7 +85,11 @@ export default function AiTherapist() {
       <CardContent className="flex flex-col items-center justify-center p-6 min-h-[400px]">
         <div className="relative">
           <img
-            src={showGif ? "/squirrel_therapist.gif" : "/squirrel_smile.png"}
+            src={
+              showGif
+                ? "/squirrel_therapist_new.gif" // Show GIF while generating response
+                : "/squirrel_smile_new.png" // Show still image otherwise
+            }
             alt="Squirrel Companion"
             className="w-80 h-80 object-contain transition-all duration-300"
           />
