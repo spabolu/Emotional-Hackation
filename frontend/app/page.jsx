@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MoodTracker from '@/components/mood-tracker';
 import Journal from '@/components/journal';
+import ConnectPage from '@/components/connect'
 import AiTherapist from '@/components/ai-therapist';
 import StreakCounter from '@/components/streak-counter';
 import { UserNav } from '@/components/user-nav';
@@ -52,7 +53,7 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="discover" className="space-y-4">
-            {}
+            <ConnectPage />
           </TabsContent>
         </Tabs>
       </main>
