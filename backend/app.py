@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from db_connection import DatabaseConnection
 from llm import LLM
 from datetime import datetime
@@ -77,6 +77,30 @@ def ai_insights(id):
     except Exception as e:
         return jsonify({"error": f"Error inserting AI insight into database: {e}"}), 500
 
+# endpoint for submit button for journal entries
+@app.route("/add_journal_entry", methods=["POST"])
+def add_journal_entry():
+    data = request.get_json()
+
+    # Extract user_id, title, and content from request data
+    user_id = data.get("user_id")
+    title = data.get("title")
+    content = data.get("content")
+
+    if not user_id or not title or not content:
+        return jsonify({"error": "Missing user_id, title, or content"}), 400
+
+    # Insert journal entry into database
+    try:
+        insert_query = """
+            INSERT INTO journals (user_id, title, content, entry_date, ai_summary_consent, content_summary)
+            VALUES (%s, %s, %s, %s, FALSE, NULL);
+        """
+        db_connection.execute_query(insert_query, (user_id, title, content, datetime.now()))
+
+        return jsonify({"message": "Journal entry added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Error inserting journal entry: {e}"}), 500
 
 # Utility Method to establish DB connection when sever starts
 def initialize_db_connection():
