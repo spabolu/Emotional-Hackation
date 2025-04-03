@@ -10,7 +10,7 @@ import DiscoverSection from "@/components/discover-section";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-fuchsia-50 to-emerald-50 mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-fuchsia-100 to-emerald-100 mx-auto">
       <Navbar />
       <main className="px-4 py-12">
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
