@@ -9,6 +9,8 @@ from llm import LLM
 from datetime import datetime
 import json
 from flask_cors import CORS
+import re
+
 
 # Load environment variables from .env file if it exists
 load_dotenv()
@@ -165,6 +167,8 @@ def find_groups(user_id):
     matched_ids = [row[0] for row in similar_insights if row[2] < similarity_threshold]
     matched_insights = [{"user_id": row[0], "insight": row[1], "distance": row[2]} for row in similar_insights if row[2] < similarity_threshold]
 
+    if len(matched_ids) <= 1:
+        return jsonify({"message": "Not enough matches to form a group"}), 200
 
     insights_text = f"Original Insight: {latest_text}\n"
     insights_text += "Matched Insights:\n"
@@ -176,20 +180,29 @@ def find_groups(user_id):
     try:
         gpt = LLM()
         group_chat_name = gpt.ask(
-            f"Based on the following insights, generate a creative and relevant group chat name. The name should be appropriate:\n{insights_text}"
+           f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
+            f"that would resonate with a Gen-Z audience. The name should feel effortless, modern, and relevant—"
+            f"something people would actually want to use. Avoid clichés, overused internet slang, or anything overly dramatic. "
+            f"Keep it fun yet authentic. Format your response as:\n\n"
+            f'NAME: "Your group chat name here"\n\n'
+            f"{insights_text}"
         )
+        print(jsonify({"original_user_id": user_id, "matched_user_ids": matched_ids, "matched_insights": matched_insights, "group_chat_name": group_chat_name }))
+        match = re.search(r'NAME:\s*"([^"]+)"', group_chat_name)
+        group_chat_name = match.group(1) if match else "Unnamed Group"
+
     except Exception as e:
         return jsonify({"error": f"Error generating group name: {e}"}), 500
-
-
-    # Step 3: Return results
-    return jsonify({
-        "original_user_id": user_id,
-        "matched_user_ids": matched_ids,
-        "matched_insights": matched_insights,
-        "group_chat_name": group_chat_name 
-    })
-
+    
+    try:
+        insert_query = """
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
+            VALUES (%s, %s, %s, %s, %s)
+            """
+        db_connection.execute_query(insert_query, (user_id, matched_ids, "suggested", group_chat_name, True))
+        return jsonify({"message": "Connection entry added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
 
 
 
