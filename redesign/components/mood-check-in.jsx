@@ -1,14 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { format, isToday, parseISO } from "date-fns";
 
-export default function MoodCheckIn() {
+export default function MoodCheckIn({ selectedDate, onDateChange }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedActivities, setSelectedActivities] = useState([]);
   const [notes, setNotes] = useState("");
+  const [dateEntry, setDateEntry] = useState(null);
+  const [dataUpdated, setDataUpdated] = useState(false);
+
+  const currentDate = selectedDate || format(new Date(), "yyyy-MM-dd");
+  const isCurrentDateToday = isToday(parseISO(currentDate));
+
+  useEffect(() => {
+    // Check if there's already an entry for the selected date
+    const moodData = JSON.parse(localStorage.getItem("moodData") || "{}");
+    if (moodData[currentDate]) {
+      setDateEntry(moodData[currentDate]);
+      setSelectedMood(moodData[currentDate].mood);
+      setSelectedActivities(moodData[currentDate].activities || []);
+      setNotes(moodData[currentDate].notes || "");
+    } else {
+      // Reset form if no entry for selected date
+      setDateEntry(null);
+      setSelectedMood(null);
+      setSelectedActivities([]);
+      setNotes("");
+    }
+
+    if (dataUpdated) {
+      setDataUpdated(false);
+    }
+  }, [currentDate, dataUpdated]);
 
   const moods = [
     { name: "Happy", emoji: "😊" },
@@ -28,7 +55,6 @@ export default function MoodCheckIn() {
     "Work",
     "Social",
     "Nature",
-    "Rest",
     "Creative",
   ];
 
@@ -40,16 +66,109 @@ export default function MoodCheckIn() {
     );
   };
 
+  const handleSubmit = () => {
+    if (!selectedMood) return;
+
+    // Get existing mood data or create new object
+    const moodData = JSON.parse(localStorage.getItem("moodData") || "{}");
+
+    // Save the entry for the current date
+    moodData[currentDate] = {
+      date: currentDate,
+      mood: selectedMood,
+      activities: selectedActivities,
+      notes: notes,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    localStorage.setItem("moodData", JSON.stringify(moodData));
+    setDateEntry(moodData[currentDate]);
+    setDataUpdated(true);
+
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new Event("moodDataUpdated"));
+
+    // Optional: Add visual feedback for user
+    alert(
+      `Your mood for ${format(
+        parseISO(currentDate),
+        "MMMM d, yyyy"
+      )} has been saved!`
+    );
+
+    // If we were editing a past date, go back to today
+    if (!isCurrentDateToday && onDateChange) {
+      onDateChange(format(new Date(), "yyyy-MM-dd"));
+    }
+  };
+
+  const clearAllData = () => {
+    if (
+      confirm(
+        "Are you sure you want to clear all mood data? This cannot be undone."
+      )
+    ) {
+      localStorage.removeItem("moodData");
+      setDataUpdated(true);
+      alert(
+        "All mood data has been cleared. Sample data will be regenerated on the next page refresh."
+      );
+    }
+  };
+
+  // Reset to today
+  const goToToday = () => {
+    if (onDateChange) {
+      onDateChange(format(new Date(), "yyyy-MM-dd"));
+    }
+  };
+
+  const formattedDate = format(parseISO(currentDate), "MMMM d, yyyy");
+
   return (
     <div className="space-y-6">
+      {!isCurrentDateToday && (
+        <div className="text-center mb-4 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+          <p className="text-fuchsia-800">
+            You are setting your mood for: <strong>{formattedDate}</strong>
+          </p>
+          <button
+            onClick={goToToday}
+            className="text-sm text-blue-600 hover:underline mt-1"
+          >
+            Return to today
+          </button>
+        </div>
+      )}
+
+      {dateEntry && (
+        <div className="text-center mb-4 bg-green-50 p-3 rounded-lg border border-green-200">
+          <p className="text-green-700">
+            {isCurrentDateToday
+              ? "You've already checked in today!"
+              : `You already have a mood entry for ${formattedDate}`}
+          </p>
+          <p className="text-emerald-600 text-sm mt-1">
+            You can update your entry if you'd like
+          </p>
+        </div>
+      )}
+
       <div className="text-center mb-4">
         <h3 className="text-lg font-medium text-fuchsia-900 mb-2">
-          Select your mood
+          {isCurrentDateToday
+            ? "Select your mood"
+            : `Select mood for ${formattedDate}`}
         </h3>
-        <p className="text-emerald-700">How are you feeling right now?</p>
+        <p className="text-emerald-700">
+          {isCurrentDateToday
+            ? "How are you feeling right now?"
+            : "How were you feeling on this day?"}
+        </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {moods.map((mood) => (
           <Button
             key={mood.name}
@@ -96,7 +215,8 @@ export default function MoodCheckIn() {
 
           <div className="space-y-2">
             <h4 className="text-sm font-medium text-emerald-800">
-              Activities today (optional)
+              Activities {isCurrentDateToday ? "today" : "on this day"}{" "}
+              (optional)
             </h4>
             <div className="flex flex-wrap gap-2">
               {activities.map((activity) => (
@@ -122,9 +242,19 @@ export default function MoodCheckIn() {
       <Button
         className="w-full bg-fuchsia-600 hover:bg-fuchsia-700 py-6 text-white"
         disabled={!selectedMood}
+        onClick={handleSubmit}
       >
-        Submit Check-in
+        {dateEntry ? "Update Entry" : "Save Entry"}
       </Button>
+
+      <div className="pt-2 text-center">
+        <button
+          onClick={clearAllData}
+          className="text-sm text-gray-500 hover:text-red-500"
+        >
+          Reset all mood data
+        </button>
+      </div>
     </div>
   );
 }
