@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useRef, useState, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -21,28 +21,69 @@ export default function AiTherapist({ threadId = "", setThreadId, journalEntry =
   const [isGenerating, setIsGenerating] = useState(false)
   const [showGif, setShowGif] = useState(false)
   const [internalThreadId, setInternalThreadId] = useState(threadId)
+  const lastProcessedEntry = useRef("");
 
   // Update internal thread ID when prop changes
   useEffect(() => {
     setInternalThreadId(threadId);
   }, [threadId]);
 
-  // Display initial response based on journal entry if available
-  useEffect(() => {
-    if (journalEntry && !isGenerating) {
-      setIsGenerating(true);
-      setShowGif(true);
-      
-      setTimeout(() => {
-        setAiMessage("I see you've written a journal entry. How are you feeling about what you wrote?");
-        setIsGenerating(false);
-        
-        setTimeout(() => {
-          setShowGif(false);
-        }, 1000);
-      }, 1500);
-    }
-  }, [journalEntry]);
+  
+  const [isFirstResponse, setIsFirstResponse] = useState(true);
+
+useEffect(() => {
+  if (journalEntry && !isGenerating && journalEntry !== lastProcessedEntry.current) {
+    lastProcessedEntry.current = journalEntry;
+    setIsGenerating(true);
+    setShowGif(true);
+
+    const fetchReflection = async () => {
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (internalThreadId) {
+          headers["X-Thread-ID"] = internalThreadId;
+        }
+
+        const response = await fetch("http://127.0.0.1:5000/journal-entry", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ entry: journalEntry })
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          if (data.thread_id) {
+            setInternalThreadId(data.thread_id);
+            if (setThreadId) setThreadId(data.thread_id);
+          }
+          let finalResponse = data.response;
+          // Append the sentence only for the first response
+          if (isFirstResponse) {
+            finalResponse = finalResponse.trim() + " Do you want to talk about it?";
+            setIsFirstResponse(false);
+          }
+          setAiMessage(finalResponse);
+        } else {
+          console.error("Error from server:", data.error);
+          setAiMessage("Sorry, I encountered an error. Please try again.");
+        }
+      } catch (error) {
+        console.error("Network error:", error);
+        setAiMessage("Sorry, I couldn't connect to the server. Please check your connection.");
+      }
+
+      setIsGenerating(false);
+      setShowGif(false);
+    };
+
+    fetchReflection();
+  }
+}, [journalEntry]);
+
+  
+  
+
+  
 
   const handleSend = async () => {
     if (!input.trim()) return
