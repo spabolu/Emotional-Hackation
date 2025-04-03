@@ -70,7 +70,7 @@ export function UserCard({ name, description, onConnect, onRemove }) {
       <p className="text-sm text-gray-600 mb-3 text-center">{description}</p>
       <Button
         onClick={() => onConnect()}
-        className="bg-fuchsia-600 hover:bg-fuchsia-700 mt-auto flex items-center gap-1"
+        className="bg-fuchsia-600 hover:bg-fuchsia-700 mt-auto flex items-center gap-1 text-white"
       >
         <Bot size={16} />
         Connect with AI
