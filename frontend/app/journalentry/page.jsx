@@ -272,7 +272,6 @@ export default function Journal() {
               >
                 Of Course!
               </Button>
-              <Button onClick={() => handleConsent(false)} variant="outline">
                 No Thank You
               </Button>
             </DialogFooter>
