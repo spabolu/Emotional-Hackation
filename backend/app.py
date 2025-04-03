@@ -25,6 +25,9 @@ db_connection = None
 THREAD_ID_HEADER = 'X-Thread-ID'
 embedder = None
 
+# ----------------------------
+# ENDPOINT DESCRIPTIONS
+# ----------------------------
 @app.route('/')
 def home():
     return """
@@ -85,6 +88,34 @@ def home():
     </html>
     """
 
+# ----------------------------
+# Journal Sumbission / Summarization
+# ----------------------------
+@app.route("/add_journal_entry", methods=["POST", "OPTIONS"])
+def add_journal_entry():
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
+    data = request.get_json()
+
+    # Extract user_id, title, and content from request data
+    user_id = data.get("user_id")
+    title = data.get("title")
+    content = data.get("content")
+
+    if not user_id or not title or not content:
+        return jsonify({"error": "Missing user_id, title, or content"}), 400
+
+    # Insert journal entry into database
+    try:
+        insert_query = """
+            INSERT INTO journals (user_id, title, content, entry_date, ai_summary_consent, content_summary)
+            VALUES (%s, %s, %s, %s, FALSE, NULL);
+        """
+        db_connection.execute_query(insert_query, (user_id, title, content, datetime.now()))
+        return jsonify({"message": "Journal entry added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Error inserting journal entry: {e}"}), 500
+
 @app.route("/summarize_latest_entry/<int:user_id>", methods=["POST"])
 def summarize_latest_entry(user_id):
     # Check database connection
@@ -128,88 +159,9 @@ def summarize_latest_entry(user_id):
         return jsonify({"error": f"Error updating journal entry: {e}"}), 500
 
 
-@app.route("/find_groups/<int:user_id>", methods=["POST"])
-def find_groups(user_id):
-    # Check database connection
-    if db_connection is None:
-        return jsonify({"error": "Database connection not established"}), 500
-    
-    # Step 1: Find the latest AI insight for the user
-    query = """
-        SELECT user_id, insights, embedding
-        FROM ai_insight
-        WHERE user_id = %s
-        ORDER BY insight_date DESC
-        LIMIT 1;
-    """
-   
-    db_connection.execute_query(query, (user_id,))
-    latest_insight = db_connection.cursor.fetchone()
-
-    latest_id, latest_text, latest_embedding = latest_insight # assign the values 
-
-    if not latest_insight:
-        return jsonify({"error": f"No AI insights found for user {user_id}"}), 404
-      
-    
-    # Step 2: Find similar insights using vector similarity (L2 distance)
-    similarity_threshold = 0.7  # Adjust based on your needs
-    query = """
-        SELECT user_id, insights, embedding <-> %s AS distance
-        FROM ai_insight
-        WHERE user_id != %s
-        ORDER BY distance ASC
-        LIMIT 5;
-    """
-    db_connection.execute_query(query, (latest_embedding, user_id,))
-    similar_insights = db_connection.cursor.fetchall()
-
-    matched_ids = [row[0] for row in similar_insights if row[2] < similarity_threshold]
-    matched_insights = [{"user_id": row[0], "insight": row[1], "distance": row[2]} for row in similar_insights if row[2] < similarity_threshold]
-
-    if len(matched_ids) <= 1:
-        return jsonify({"message": "Not enough matches to form a group"}), 200
-
-    insights_text = f"Original Insight: {latest_text}\n"
-    insights_text += "Matched Insights:\n"
-    for insight in matched_insights:
-        insights_text += f"- {insight['insight']}\n"
-
-
-
-    try:
-        gpt = LLM()
-        group_chat_name = gpt.ask(
-           f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
-            f"that would resonate with a Gen-Z audience. The name should feel effortless, modern, and relevant—"
-            f"something people would actually want to use. Avoid clichés, overused internet slang, or anything overly dramatic. "
-            f"Keep it fun yet authentic. Format your response as:\n\n"
-            f'NAME: "Your group chat name here"\n\n'
-            f"{insights_text}"
-        )
-        print(jsonify({"original_user_id": user_id, "matched_user_ids": matched_ids, "matched_insights": matched_insights, "group_chat_name": group_chat_name }))
-        match = re.search(r'NAME:\s*"([^"]+)"', group_chat_name)
-        group_chat_name = match.group(1) if match else "Unnamed Group"
-
-    except Exception as e:
-        return jsonify({"error": f"Error generating group name: {e}"}), 500
-    
-    try:
-        insert_query = """
-            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
-            VALUES (%s, %s, %s, %s, %s)
-            """
-        db_connection.execute_query(insert_query, (user_id, matched_ids, "suggested", group_chat_name, True))
-        return jsonify({"message": "Connection entry added successfully"}), 201
-    except Exception as e:
-        return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
-
-
-
 # ----------------------------
 # Journal Companion / Chat Endpoints
 # ----------------------------
-
 @app.route('/journal-entry', methods=['POST'])
 def handle_journal_entry():
     """Endpoint to receive journal entries. Expects X-Thread-ID header for existing convos."""
@@ -297,33 +249,10 @@ def fetch_journals(user_id):
     else:
         return jsonify({"journals": []}), 200  
 
-# ----------------------------
-# Database-Backed Endpoints
-# ----------------------------
 
-@app.route("/users/<int:id>", methods=["GET"])
-def users(id):
-    # Check database connection 
-    if db_connection is None:
-        return jsonify({"error": "Database connection not established"}), 500
-    
-    query = "SELECT * FROM users WHERE user_id = %s;"
-    db_connection.execute_query(query, (id,))
-    user = db_connection.cursor.fetchone()
-    
-    if user:
-        # Format user data as a dictionary
-        user_data = {
-            "user_id": user[0],
-            "username": user[1],
-            "first_name": user[2],
-            "last_name": user[3],
-            "about_me": user[4]
-        }
-        return jsonify(user_data), 200
-    else:
-        return jsonify({"error": "User not found"}), 404
-
+# ----------------------------
+# ASYNCRONOUS Vector AI to Find Friends
+# ----------------------------
 @app.route("/add_ai_insight/<int:id>", methods=["POST"])
 def ai_insights(id):
     # Check database connection 
@@ -377,35 +306,6 @@ def ai_insights(id):
     except Exception as e:
         return jsonify({"error": f"Error inserting AI insight into database: {e}"}), 500
 
-@app.route("/add_journal_entry", methods=["POST", "OPTIONS"])
-def add_journal_entry():
-    if request.method == "OPTIONS":
-        return "", 200  # Handle preflight request
-    data = request.get_json()
-
-    # Extract user_id, title, and content from request data
-    user_id = data.get("user_id")
-    title = data.get("title")
-    content = data.get("content")
-
-    if not user_id or not title or not content:
-        return jsonify({"error": "Missing user_id, title, or content"}), 400
-
-    # Insert journal entry into database
-    try:
-        insert_query = """
-            INSERT INTO journals (user_id, title, content, entry_date, ai_summary_consent, content_summary)
-            VALUES (%s, %s, %s, %s, FALSE, NULL);
-        """
-        db_connection.execute_query(insert_query, (user_id, title, content, datetime.now()))
-        return jsonify({"message": "Journal entry added successfully"}), 201
-    except Exception as e:
-        return jsonify({"error": f"Error inserting journal entry: {e}"}), 500
-
-# ----------------------------
-# Friend Making Endpoints
-# ----------------------------
-
 @app.route("/find_friend/<int:id>", methods=["POST"])
 def find_friend(id):
     # Check database connection 
@@ -453,11 +353,85 @@ def find_friend(id):
         return jsonify({"message": f"Connection added successfully"}), 201
     except Exception as e:
         return jsonify({"error": f"Error inserting connections: {e}"}), 500
-        
+    
+@app.route("/find_groups/<int:user_id>", methods=["POST"])
+def find_groups(user_id):
+    # Check database connection
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+    
+    # Step 1: Find the latest AI insight for the user
+    query = """
+        SELECT user_id, insights, embedding
+        FROM ai_insight
+        WHERE user_id = %s
+        ORDER BY insight_date DESC
+        LIMIT 1;
+    """
+   
+    db_connection.execute_query(query, (user_id,))
+    latest_insight = db_connection.cursor.fetchone()
+
+    latest_id, latest_text, latest_embedding = latest_insight # assign the values 
+
+    if not latest_insight:
+        return jsonify({"error": f"No AI insights found for user {user_id}"}), 404
+      
+    
+    # Step 2: Find similar insights using vector similarity (L2 distance)
+    similarity_threshold = 0.7  # Adjust based on your needs
+    query = """
+        SELECT user_id, insights, embedding <-> %s AS distance
+        FROM ai_insight
+        WHERE user_id != %s
+        ORDER BY distance ASC
+        LIMIT 5;
+    """
+    db_connection.execute_query(query, (latest_embedding, user_id,))
+    similar_insights = db_connection.cursor.fetchall()
+
+    matched_ids = [row[0] for row in similar_insights if row[2] < similarity_threshold]
+    matched_insights = [{"user_id": row[0], "insight": row[1], "distance": row[2]} for row in similar_insights if row[2] < similarity_threshold]
+
+    if len(matched_ids) <= 1:
+        return jsonify({"message": "Not enough matches to form a group"}), 200
+
+    insights_text = f"Original Insight: {latest_text}\n"
+    insights_text += "Matched Insights:\n"
+    for insight in matched_insights:
+        insights_text += f"- {insight['insight']}\n"
+
+    try:
+        gpt = LLM()
+        group_chat_name = gpt.ask(
+           f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
+            f"that would resonate with a Gen-Z audience. The name should feel effortless, modern, and relevant—"
+            f"something people would actually want to use. Avoid clichés, overused internet slang, or anything overly dramatic. "
+            f"Keep it fun yet authentic. Format your response as:\n\n"
+            f'NAME: "Your group chat name here"\n\n'
+            f"{insights_text}"
+        )
+        print(jsonify({"original_user_id": user_id, "matched_user_ids": matched_ids, "matched_insights": matched_insights, "group_chat_name": group_chat_name }))
+        match = re.search(r'NAME:\s*"([^"]+)"', group_chat_name)
+        group_chat_name = match.group(1) if match else "Unnamed Group"
+
+    except Exception as e:
+        return jsonify({"error": f"Error generating group name: {e}"}), 500
+    
+    try:
+        insert_query = """
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
+            VALUES (%s, %s, %s, %s, %s)
+            """
+        db_connection.execute_query(insert_query, (user_id, matched_ids, "suggested", group_chat_name, True))
+        return jsonify({"message": "Connection entry added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
+
+
 # ----------------------------
 # Utility Functions for Database Connection
 # ----------------------------
-
 def initialize_db_connection():
     global db_connection
     db_connection = DatabaseConnection(
@@ -473,10 +447,10 @@ def close_db_connection():
     if db_connection:
         db_connection.close()
 
+
 # ----------------------------
 # Run the Flask Application
 # ----------------------------
-
 if __name__ == '__main__':
     embedder = TextEmbedder()
     initialize_db_connection()
