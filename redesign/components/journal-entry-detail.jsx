@@ -5,7 +5,7 @@ import { CalendarIcon, X, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
-import TherapistAvatar from "@/components/therapist-avatar"
+//import TherapistAvatar from "@/components/therapist-avatar"
 
 // interface JournalEntryDetailProps {
 //   entry: {
@@ -232,7 +232,7 @@ export default function JournalEntryDetail({
           </div>
 
           {/* Therapist avatar section */}
-          <AnimatePresence>
+          {/* <AnimatePresence>
             {showTherapist && (
               <motion.div
                 className="border-t border-fuchsia-200 bg-white/50"
@@ -247,7 +247,7 @@ export default function JournalEntryDetail({
                 </div>
               </motion.div>
             )}
-          </AnimatePresence>
+          </AnimatePresence> */}
         </motion.div>
       </motion.div>
     </AnimatePresence>
