@@ -250,6 +250,39 @@ def fetch_journals(user_id):
     else:
         return jsonify({"journals": []}), 200  
 
+@app.route('/journal_consent_true/<int:user_id>', methods=["POST", "OPTIONS"])
+def journal_consent_true(user_id):
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
+
+    try:
+        # Find the latest journal entry for the user
+        query = """
+            SELECT journal_id FROM journals
+            WHERE user_id = %s
+            ORDER BY entry_date DESC
+            LIMIT 1;
+        """
+        db_connection.execute_query(query, (user_id,))
+        latest_entry = db_connection.cursor.fetchone()
+
+        if not latest_entry:
+            return jsonify({"error": "No journal entries found for this user"}), 404
+
+        latest_entry_id = latest_entry[0]
+        print(latest_entry_id)
+        # Update ai_summary_consent to TRUE for the latest entry
+        update_query = """
+            UPDATE journals
+            SET ai_summary_consent = TRUE
+            WHERE journal_id = %s;
+        """
+        db_connection.execute_query(update_query, (latest_entry_id,))
+
+        return jsonify({"message": "AI summary consent updated successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": f"Error updating AI summary consent: {e}"}), 500
+
 
 # ----------------------------
 # ASYNCRONOUS Vector AI to Find Friends
