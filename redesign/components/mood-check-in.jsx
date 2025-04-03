@@ -38,14 +38,14 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
   }, [currentDate, dataUpdated]);
 
   const moods = [
-    { name: "Happy", emoji: "😊" },
-    { name: "Sad", emoji: "😔" },
-    { name: "Neutral", emoji: "😐" },
-    { name: "Excited", emoji: "😃" },
-    { name: "Anxious", emoji: "😰" },
-    { name: "Relaxed", emoji: "😌" },
-    { name: "Tired", emoji: "😴" },
-    { name: "Grateful", emoji: "🙏" },
+    { name: "Happy", emoji: "😊", color: "bg-yellow-100 hover:bg-yellow-200 border-yellow-300 text-yellow-800" },
+    { name: "Sad", emoji: "😔", color: "bg-blue-100 hover:bg-blue-200 border-blue-300 text-blue-800" },
+    { name: "Neutral", emoji: "😐", color: "bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800" },
+    { name: "Excited", emoji: "😃", color: "bg-pink-100 hover:bg-pink-200 border-pink-300 text-pink-800" },
+    { name: "Anxious", emoji: "😰", color: "bg-purple-100 hover:bg-purple-200 border-purple-300 text-purple-800" },
+    { name: "Relaxed", emoji: "😌", color: "bg-green-100 hover:bg-green-200 border-green-300 text-green-800" },
+    { name: "Tired", emoji: "😴", color: "bg-orange-100 hover:bg-orange-200 border-orange-300 text-orange-800" },
+    { name: "Grateful", emoji: "🙏", color: "bg-teal-100 hover:bg-teal-200 border-teal-300 text-teal-800" },
   ];
 
   const activities = [
@@ -175,8 +175,8 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
             variant={selectedMood === mood.name ? "default" : "outline"}
             className={`flex flex-col h-auto py-3 transition-all ${
               selectedMood === mood.name
-                ? "bg-fuchsia-200 border-fuchsia-600 text-fuchsia-700 ring-2 ring-fuchsia-600 shadow-md"
-                : "bg-white hover:bg-fuchsia-50 hover:border-fuchsia-300 hover:text-fuchsia-600"
+                ? `${mood.color} ring-2 ring-offset-1 shadow-md ring-fuchsia-400`
+                : `${mood.color} hover:shadow-sm`
             }`}
             onClick={() => setSelectedMood(mood.name)}
           >

@@ -18,6 +18,18 @@ export default function MoodCalendar({ onDateSelect }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [moodData, setMoodData] = useState({});
 
+  // Define all possible moods
+  const allMoods = [
+    "Happy",
+    "Sad",
+    "Neutral",
+    "Excited",
+    "Anxious",
+    "Relaxed",
+    "Tired",
+    "Grateful",
+  ];
+
   // Add an effect to refresh data when localStorage changes
   useEffect(() => {
     const loadMoodData = () => {
@@ -156,12 +168,6 @@ export default function MoodCalendar({ onDateSelect }) {
     onDateSelect && onDateSelect(dateStr);
   };
 
-  // Get unique moods for the legend
-  const uniqueMoods = Object.values(moodData)
-    .filter((entry) => isSameMonth(new Date(entry.date), currentMonth))
-    .map((entry) => entry.mood)
-    .filter((value, index, self) => self.indexOf(value) === index);
-
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-2">
@@ -231,20 +237,18 @@ export default function MoodCalendar({ onDateSelect }) {
         })}
       </div>
 
-      {uniqueMoods.length > 0 && (
-        <div className="mt-3 grid grid-cols-2 gap-1">
-          {uniqueMoods.map((mood) => (
-            <div key={mood} className="flex items-center gap-1">
-              <div
-                className={`w-2 h-2 rounded-full ${getMoodColor(mood)}`}
-              ></div>
-              <span className="text-xs text-emerald-800 capitalize">
-                {mood}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="mt-3 grid grid-cols-2 gap-1">
+        {allMoods.map((mood) => (
+          <div key={mood} className="flex items-center gap-1">
+            <div
+              className={`w-2 h-2 rounded-full ${getMoodColor(mood)}`}
+            ></div>
+            <span className="text-xs text-emerald-800 capitalize">
+              {mood}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
