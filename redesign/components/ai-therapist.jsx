@@ -152,8 +152,8 @@ useEffect(() => {
         <CardDescription>Your reflective journal buddy 🐿️</CardDescription>
       </CardHeader>
 
-      <CardContent className="flex flex-col items-center justify-center p-6 min-h-[400px]">
-        <div className="relative">
+      {/* <CardContent className="flex flex-col items-center justify-center p-6 min-h-[400px]">
+        <div className="relative flex items-start gap-4">">
           <img
             src={
               showGif
@@ -161,11 +161,10 @@ useEffect(() => {
                 : "/squirrel_smile_scale.png" // Show still image otherwise
             }
             alt="Squirrel Companion"
-            className="w-96 h-96 object-contain transition-all duration-300"
+            className="w-64 h-64 object-contain transition-all duration-300"
             />
-          <div className="absolute top-[80px] left-[350px] bg-white shadow-md rounded-2xl p-5 border border-teal-300 w-[500px] text-left text-[0.95rem] leading-relaxed"
-          >
-            {isGenerating ? (
+<div className="absolute top-[60px] left-[40px] bg-white shadow-md rounded-2xl p-6 border border-teal-300 w-[380px] min-h-[180px] text-left text-[1rem] leading-relaxed">
+{isGenerating ? (
               <div className="flex space-x-1 justify-center">
                 <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
                 <div
@@ -182,7 +181,43 @@ useEffect(() => {
             )}
           </div>
         </div>
-      </CardContent>
+      </CardContent> */}
+
+<CardContent className="flex flex-col items-start justify-start p-6 min-h-[400px]">
+  <div className="relative flex items-start gap-4">
+    <img
+      src={
+        showGif
+          ? "/squirrel_therapist_new.gif"
+          : "/squirrel_smile_scale.png"
+      }
+      alt="Squirrel Companion"
+      className="w-100 h-100 object-contain transition-all duration-300"
+    />
+
+<div
+  className="bg-white shadow-md rounded-2xl p-6 border border-teal-300 w-[360px] min-h-[180px] text-left text-[1rem] leading-relaxed mt-20 ml-0 mr-20"
+>
+
+      {isGenerating ? (
+        <div className="flex space-x-1 justify-center">
+          <div className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></div>
+          <div
+            className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+            style={{ animationDelay: "0.2s" }}
+          ></div>
+          <div
+            className="h-2 w-2 animate-bounce rounded-full bg-gray-400"
+            style={{ animationDelay: "0.4s" }}
+          ></div>
+        </div>
+      ) : (
+        <p className="text-sm">{aiMessage}</p>
+      )}
+    </div>
+  </div>
+</CardContent>
+
 
       <CardFooter className="flex flex-col gap-4">
         <div className="flex w-full items-center space-x-2">
@@ -196,15 +231,15 @@ useEffect(() => {
           <Button
             onClick={handleSend}
             disabled={!input.trim() || isGenerating}
-            className="bg-teal-600 hover:bg-teal-700"
+            className="bg-fuchsia-400 hover:bg-fuchsia-700"
           >
-            <Send className="h-4 w-4" />
+            <Send className="h-4 w-4  text-white" />
           </Button>
         </div>
-        <Button variant="outline" className="w-full" onClick={resetConversation}>
+        {/* <Button variant="outline" className="w-full" onClick={resetConversation}>
           <RefreshCw className="mr-2 h-4 w-4" />
           Start New Conversation
-        </Button>
+        </Button> */}
       </CardFooter>
     </Card>
   )

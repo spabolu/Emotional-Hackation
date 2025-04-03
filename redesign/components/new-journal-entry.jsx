@@ -176,7 +176,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
           <Button
             onClick={handleSave}
             disabled={!isFormValid() || saving}
-            className="bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
+            className="text-white bg-fuchsia-700 hover:bg-fuchsia-900 disabled:bg-fuchsia-700"
           >
             {saving ? 'Saving...' : 'Save Entry'}
           </Button>
