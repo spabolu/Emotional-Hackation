@@ -53,10 +53,18 @@
 # print("Response JSON:", response.json())
 
 
+# import requests
+
+# user_id = 2  # Replace with a valid user ID
+# response = requests.post(f"http://127.0.0.1:5000/find_groups/{user_id}")
+
+
+# print(response.json())
+
 import requests
 
-user_id = 2  # Replace with a valid user ID
-response = requests.post(f"http://127.0.0.1:5000/find_groups/{user_id}")
+url = f"http://127.0.0.1:5000/journal_consent_true/1"
 
+response = requests.post(url)
 
-print(response.json())
+print(response.json())  # Print the API response
