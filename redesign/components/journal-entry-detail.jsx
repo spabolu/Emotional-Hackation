@@ -26,7 +26,7 @@ export default function JournalEntryDetail({
   entry,
   entries,
   onClose,
-  getMoodColor,
+  // getMoodColor,
   onNavigate,
 }) {
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -192,10 +192,10 @@ export default function JournalEntryDetail({
             >
               <div className="flex items-center gap-2 text-sm text-emerald-700 mb-6">
                 <CalendarIcon className="h-4 w-4" />
-                <span>{entry.date}</span>
-                <Badge variant="secondary" className={getMoodColor(entry.mood)}>
-                  {entry.mood}
-                </Badge>
+                <span>{entry.entry_date}</span>
+                {/* <Badge variant="secondary" className={getMoodColor(entry.mood)}> */}
+                  {/* {entry.mood} */}
+                {/* </Badge> */}
               </div>
 
               <div className="prose prose-fuchsia max-w-none">
@@ -218,7 +218,7 @@ export default function JournalEntryDetail({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                {entry.tags.map((tag) => (
+                {/* {entry.tags.map((tag) => (
                   <Badge
                     key={tag}
                     variant="outline"
@@ -226,7 +226,7 @@ export default function JournalEntryDetail({
                   >
                     #{tag}
                   </Badge>
-                ))}
+                ))} */}
               </motion.div>
             </motion.div>
           </div>

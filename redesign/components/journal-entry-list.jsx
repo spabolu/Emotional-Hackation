@@ -1,83 +1,64 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { CalendarIcon, ChevronRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { motion } from "framer-motion"
-import JournalEntryDetail from "@/components/journal-entry-detail"
+import { useState, useEffect } from "react";
+import { CalendarIcon, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
+import JournalEntryDetail from "@/components/journal-entry-detail";
 
 export default function JournalEntryList() {
-  const [entries, setEntries] = useState([]) // State to store journal entries
-  const [selectedEntryId, setSelectedEntryId] = useState(null)
-  const [loading, setLoading] = useState(true) // State for loading
-  const [error, setError] = useState(null) // State for error handling
+  const [entries, setEntries] = useState([]); // State to store journal entries
+  const [selectedEntryId, setSelectedEntryId] = useState(null);
+  const [loading, setLoading] = useState(true); // State for loading
+  const [error, setError] = useState(null); // State for error handling
 
   // Fetch journal entries from the API
   useEffect(() => {
     const fetchEntries = async () => {
       try {
-        const userId = 1 // Replace with the actual user ID
-        const response = await fetch(`http://127.0.0.1:5000/fetch_journals/${userId}`)
+        const userId = 1; // Replace with the actual user ID
+        const response = await fetch(
+          `http://127.0.0.1:5000/fetch_journals/${userId}`
+        );
         if (!response.ok) {
-          throw new Error(`Error fetching journals: ${response.statusText}`)
+          throw new Error(`Error fetching journals: ${response.statusText}`);
         }
-        const data = await response.json()
-        setEntries(data.journals) // Update state with fetched entries
+        const data = await response.json();
+        setEntries(data.journals); // Update state with fetched entries
       } catch (err) {
-        setError(err.message)
+        setError(err.message);
       } finally {
-        setLoading(false) // Stop loading
+        setLoading(false); // Stop loading
       }
-    }
+    };
 
-    fetchEntries()
-  }, [])
+    fetchEntries();
+  }, []);
 
-  const getMoodColor = (mood) => {
-    switch (mood.toLowerCase()) {
-      case "happy":
-        return "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-      case "sad":
-        return "bg-blue-100 text-blue-800 hover:bg-blue-200"
-      case "neutral":
-        return "bg-gray-100 text-gray-800 hover:bg-gray-200"
-      case "excited":
-        return "bg-pink-100 text-pink-800 hover:bg-pink-200"
-      case "anxious":
-        return "bg-purple-100 text-purple-800 hover:bg-purple-200"
-      case "relaxed":
-        return "bg-green-100 text-green-800 hover:bg-green-200"
-      case "tired":
-        return "bg-orange-100 text-orange-800 hover:bg-orange-200"
-      case "grateful":
-        return "bg-teal-100 text-teal-800 hover:bg-teal-200"
-      default:
-        return "bg-fuchsia-100 text-fuchsia-800 hover:bg-fuchsia-200"
-    }
-  }
+  console.log(entries);
 
   const openEntry = (id) => {
-    setSelectedEntryId(id)
-  }
+    setSelectedEntryId(id);
+  };
 
   const navigateToEntry = (id) => {
-    setSelectedEntryId(id)
-  }
+    setSelectedEntryId(id);
+  };
 
-  const selectedEntry = entries.find((entry) => entry.id === selectedEntryId)
+  const selectedEntry = entries.find((entry) => entry.id === selectedEntryId);
 
   if (loading) {
-    return <p>Loading journal entries...</p>
+    return <p>Loading journal entries...</p>;
   }
 
   if (error) {
-    return <p className="text-red-500">Error: {error}</p>
+    return <p className="text-red-500">Error: {error}</p>;
   }
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="h-[calc(100vh-300px)] overflow-y-auto pr-2 mb-4 space-y-4">
         {entries.map((entry, index) => (
           <motion.div
             key={entry.id}
@@ -95,9 +76,6 @@ export default function JournalEntryList() {
                 <div className="flex items-center gap-2 text-sm text-emerald-700 mt-1">
                   <CalendarIcon className="h-3 w-3" />
                   <span>{entry.entry_date}</span>
-                  <Badge variant="secondary" className={getMoodColor(entry.mood || "neutral")}>
-                    {entry.mood || "Neutral"}
-                  </Badge>
                 </div>
               </div>
               <Button
@@ -108,7 +86,9 @@ export default function JournalEntryList() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-emerald-800 mt-2 line-clamp-2">{entry.content}</p>
+            <p className="text-emerald-800 mt-2 line-clamp-2">
+              {entry.content}
+            </p>
           </motion.div>
         ))}
       </div>
@@ -118,10 +98,9 @@ export default function JournalEntryList() {
           entry={selectedEntry}
           entries={entries}
           onClose={() => setSelectedEntryId(null)}
-          getMoodColor={getMoodColor}
           onNavigate={navigateToEntry}
         />
       )}
     </>
-  )
+  );
 }
