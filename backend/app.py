@@ -255,6 +255,33 @@ def handle_chat():
         print(f"Unhandled exception in /chat endpoint: {e}")
         return jsonify({"error": "An unexpected server error occurred."}), 500
 
+@app.route('/fetch_journals/<int:user_id>', methods=["GET"])
+def fetch_journals(user_id):
+    # Check database connection 
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+    
+    query = """
+        SELECT title, entry_date, content FROM public.journals
+        WHERE user_id = 1
+        ORDER BY entry_date DESC
+    """
+    db_connection.execute_query(query, (user_id,))
+    journals = db_connection.cursor.fetchall()
+    
+    if journals:
+        journal_entries = [
+            {
+                "title": journal[0], 
+                "entry_date": journal[1].strftime("%Y-%m-%d"),
+                "preview": (journal[2][:100] + "...") if len(journal[2]) > 100 else journal[2] 
+            } 
+            for journal in journals
+        ]
+        return jsonify({"journals": journal_entries}), 200
+    else:
+        return jsonify({"journals": []}), 200  
+
 # ----------------------------
 # Database-Backed Endpoints
 # ----------------------------
