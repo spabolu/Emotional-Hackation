@@ -229,7 +229,7 @@ def fetch_journals(user_id):
         return jsonify({"error": "Database connection not established"}), 500
     
     query = """
-        SELECT title, entry_date, content FROM public.journals
+        SELECT title, entry_date, content, journal_id FROM public.journals
         WHERE user_id = 1
         ORDER BY entry_date DESC
     """
@@ -239,9 +239,10 @@ def fetch_journals(user_id):
     if journals:
         journal_entries = [
             {
+                "id": journal[3],
                 "title": journal[0], 
                 "entry_date": journal[1].strftime("%Y-%m-%d"),
-                "preview": (journal[2][:100] + "...") if len(journal[2]) > 100 else journal[2] 
+                "content": journal[2] 
             } 
             for journal in journals
         ]
