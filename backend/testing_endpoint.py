@@ -37,18 +37,26 @@
 # print("Response Text:", response.text)  # Print raw response to debug
 
 
+# import requests
+
+# # Define user_id to test
+# user_id = 6  # Replace with an actual user ID from your database
+
+# # Define the API endpoint
+# url = f"http://127.0.0.1:5000/summarize_latest_entry/{user_id}"
+
+# # Send a POST request
+# response = requests.post(url)
+
+# # Print the response
+# print("Status Code:", response.status_code)
+# print("Response JSON:", response.json())
+
+
 import requests
 
-# Define user_id to test
-user_id = 6  # Replace with an actual user ID from your database
+user_id = 2  # Replace with a valid user ID
+response = requests.post(f"http://127.0.0.1:5000/find_groups/{user_id}")
 
-# Define the API endpoint
-url = f"http://127.0.0.1:5000/summarize_latest_entry/{user_id}"
 
-# Send a POST request
-response = requests.post(url)
-
-# Print the response
-print("Status Code:", response.status_code)
-print("Response JSON:", response.json())
-
+print(response.json())
