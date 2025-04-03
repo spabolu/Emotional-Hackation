@@ -1,9 +1,9 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import BoringAvatar from "boring-avatars";
 
-export function MessagePreview({ name, message, photo, onClick }) {
+export function MessagePreview({ name, message, onClick }) {
   return (
     <div
       className="flex items-center space-x-4 p-3 bg-white rounded-lg shadow-sm hover:bg-fuchsia-50 transition-colors duration-200 cursor-pointer"
