@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { User } from "lucide-react";
+import { default as BoringAvatar } from "boring-avatars";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function Navbar() {
@@ -19,7 +19,7 @@ export default function Navbar() {
         <Avatar className="h-8 w-8 border border-fuchsia-200 flex">
           <AvatarImage src="" alt="User" />
           <AvatarFallback className="bg-fuchsia-100 text-fuchsia-700">
-            <User className="h-4 w-4" />
+            <BoringAvatar name="test" variant="beam" />
           </AvatarFallback>
         </Avatar>
       </div>
