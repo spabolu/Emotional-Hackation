@@ -1,28 +1,29 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { X, Bot, Check, XIcon } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { X, Bot, Check, XIcon } from "lucide-react";
+import BoringAvatar from "boring-avatars";
 
-export function UserCard({ name, photo, description, onConnect, onRemove }) {
-  const [showConfirmation, setShowConfirmation] = useState(false)
+export function UserCard({ name, description, onConnect, onRemove }) {
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   const handleRemoveClick = (e) => {
-    e.stopPropagation()
-    setShowConfirmation(true)
-  }
+    e.stopPropagation();
+    setShowConfirmation(true);
+  };
 
   const handleConfirmRemove = (e) => {
-    e.stopPropagation()
-    onRemove()
-    setShowConfirmation(false)
-  }
+    e.stopPropagation();
+    onRemove();
+    setShowConfirmation(false);
+  };
 
   const handleCancelRemove = (e) => {
-    e.stopPropagation()
-    setShowConfirmation(false)
-  }
+    e.stopPropagation();
+    setShowConfirmation(false);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center min-w-[200px] h-[250px] relative transition-all duration-200 hover:shadow-lg hover:bg-fuchsia-50">
@@ -30,7 +31,11 @@ export function UserCard({ name, photo, description, onConnect, onRemove }) {
         <div className="absolute top-2 left-2 right-2 bg-white shadow-md rounded-md p-2 z-10 border border-gray-200">
           <p className="text-xs text-gray-700 mb-2">Remove this suggestion?</p>
           <div className="flex justify-end space-x-2">
-            <button onClick={handleCancelRemove} className="p-1 rounded-full hover:bg-gray-100" aria-label="Cancel">
+            <button
+              onClick={handleCancelRemove}
+              className="p-1 rounded-full hover:bg-gray-100"
+              aria-label="Cancel"
+            >
               <XIcon size={14} className="text-gray-600" />
             </button>
             <button
@@ -52,9 +57,15 @@ export function UserCard({ name, photo, description, onConnect, onRemove }) {
         </button>
       )}
       <Avatar className="w-16 h-16 mb-2">
-        <AvatarImage src={photo} alt={name} />
-        <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+        <div className="w-full h-full flex items-center justify-center overflow-hidden">
+          {name ? (
+            <BoringAvatar size={64} name={name} variant="beam" />
+          ) : (
+            <AvatarFallback>{name ? name.charAt(0) : "?"}</AvatarFallback>
+          )}
+        </div>
       </Avatar>
+
       <h3 className="font-semibold text-lg mb-1">{name}</h3>
       <p className="text-sm text-gray-600 mb-3 text-center">{description}</p>
       <Button
@@ -65,6 +76,5 @@ export function UserCard({ name, photo, description, onConnect, onRemove }) {
         Connect with AI
       </Button>
     </div>
-  )
+  );
 }
-

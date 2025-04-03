@@ -1,39 +1,44 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { UserCard } from "@/components/user-card"
-import { MessagePreview } from "@/components/message-preview"
-import { Chat } from "@/components/chat"
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { UserCard } from "@/components/user-card";
+import { MessagePreview } from "@/components/message-preview";
+import { Chat } from "@/components/chat";
+import Avatar from "boring-avatars";
 
 const initialSuggestedUsers = [
   {
     id: 1,
     name: "Alice Johnson",
-    photo: "/placeholder.svg?height=64&width=64",
     description: "UX Designer & Coffee Enthusiast",
   },
-  { id: 2, name: "Bob Smith", photo: "/placeholder.svg?height=64&width=64", description: "Software Engineer & Gamer" },
+  {
+    id: 2,
+    name: "Bob Smith",
+    
+    description: "Software Engineer & Gamer",
+  },
   {
     id: 3,
     name: "Carol Williams",
-    photo: "/placeholder.svg?height=64&width=64",
+    
     description: "Marketing Specialist & Traveler",
   },
   {
     id: 4,
     name: "David Brown",
-    photo: "/placeholder.svg?height=64&width=64",
+    
     description: "Data Scientist & Musician",
   },
   {
     id: 5,
     name: "Eva Garcia",
-    photo: "/placeholder.svg?height=64&width=64",
+    
     description: "Product Manager & Yoga Instructor",
   },
-]
+];
 
 const initialMessages = [
   {
@@ -42,25 +47,25 @@ const initialMessages = [
     message: "Are we still on for lunch tomorrow?",
     photo: "/placeholder.svg?height=40&width=40",
   },
-]
+];
 
 export default function DiscoverSection() {
-  const [suggestedUsers, setSuggestedUsers] = useState(initialSuggestedUsers)
-  const [messages, setMessages] = useState(initialMessages)
-  const [currentChat, setCurrentChat] = useState(null)
-  const [hiddenUsers, setHiddenUsers] = useState([])
+  const [suggestedUsers, setSuggestedUsers] = useState(initialSuggestedUsers);
+  const [messages, setMessages] = useState(initialMessages);
+  const [currentChat, setCurrentChat] = useState(null);
+  const [hiddenUsers, setHiddenUsers] = useState([]);
 
   const handleConnect = (user) => {
-    setCurrentChat(user)
-  }
+    setCurrentChat(user);
+  };
 
   const handleRemoveCard = (id) => {
-    setHiddenUsers([...hiddenUsers, id])
-  }
+    setHiddenUsers([...hiddenUsers, id]);
+  };
 
   const handleBackFromChat = () => {
-    setCurrentChat(null)
-  }
+    setCurrentChat(null);
+  };
 
   const handleFirstMessage = (messageContent) => {
     if (currentChat) {
@@ -70,28 +75,38 @@ export default function DiscoverSection() {
         name: currentChat.name,
         message: messageContent,
         photo: currentChat.photo,
-      }
-      setMessages([newMessage, ...messages])
+      };
+      setMessages([newMessage, ...messages]);
 
       // Remove user from suggested list
-      setSuggestedUsers(suggestedUsers.filter((user) => user.id !== currentChat.id))
+      setSuggestedUsers(
+        suggestedUsers.filter((user) => user.id !== currentChat.id)
+      );
     }
-  }
+  };
 
   // Filter out hidden users but keep the container size consistent
-  const visibleUsers = suggestedUsers.filter((user) => !hiddenUsers.includes(user.id))
+  const visibleUsers = suggestedUsers.filter(
+    (user) => !hiddenUsers.includes(user.id)
+  );
 
   if (currentChat) {
     return (
       <div className="max-w-4xl mx-auto px-4">
-        <Chat user={currentChat} onBack={handleBackFromChat} onFirstMessage={handleFirstMessage} />
+        <Chat
+          user={currentChat}
+          onBack={handleBackFromChat}
+          onFirstMessage={handleFirstMessage}
+        />
       </div>
-    )
+    );
   }
 
   return (
     <div className="max-w-4xl mx-auto px-4">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Suggested for you</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        Suggested for you
+      </h2>
 
       <div className="mb-8 overflow-x-auto">
         <div className="flex space-x-4 pb-4" style={{ minHeight: "280px" }}>
@@ -107,7 +122,9 @@ export default function DiscoverSection() {
               />
             ))
           ) : (
-            <div className="w-full flex items-center justify-center text-gray-500">No more suggestions available</div>
+            <div className="w-full flex items-center justify-center text-gray-500">
+              No more suggestions available
+            </div>
           )}
         </div>
       </div>
@@ -122,7 +139,9 @@ export default function DiscoverSection() {
         </div>
       </div>
 
-      <h3 className="text-xl font-semibold text-gray-800 mb-4">Recent Messages</h3>
+      <h3 className="text-xl font-semibold text-gray-800 mb-4">
+        Recent Messages
+      </h3>
       <div className="space-y-4">
         {messages.length > 0 ? (
           messages.map((message) => (
@@ -133,13 +152,15 @@ export default function DiscoverSection() {
               photo={message.photo}
               onClick={() => {
                 // Find the corresponding user in suggestedUsers or create a new user object
-                const user = suggestedUsers.find((u) => u.name === message.name) || {
+                const user = suggestedUsers.find(
+                  (u) => u.name === message.name
+                ) || {
                   id: message.id,
                   name: message.name,
                   photo: message.photo,
                   description: "Chat contact",
-                }
-                handleConnect(user)
+                };
+                handleConnect(user);
               }}
             />
           ))
@@ -148,6 +169,5 @@ export default function DiscoverSection() {
         )}
       </div>
     </div>
-  )
+  );
 }
-
