@@ -351,8 +351,10 @@ def ai_insights(id):
     try:
         gpt = LLM()
         insight_text = gpt.ask(
-            f"Analyze these journal entries and generate insights about the user's thoughts, emotions, and behavioral patterns over time. "
-            f"Focus on recurring themes, emotional trends, and personal growth while maintaining user privacy. Make it one paragraph: {combined_summaries}"
+            f"Analyze the following journal entries and produce a concise, one-paragraph summary that captures the user's emotional state, recurring themes, cognitive patterns, coping mechanisms, and personal growth over time. "
+            f"Focus on identifying consistent emotional trends and behavioral patterns, and ensure that no personally identifying information is included. "
+            f"At the end of the paragraph, list 3-5 key descriptive keywords (separated by commas) that best capture the core themes. "
+            f"Journal entries: {combined_summaries}"
         )
     except Exception as e:
         return jsonify({"error": f"Error generating AI insight: {e}"}), 500
@@ -400,6 +402,58 @@ def add_journal_entry():
     except Exception as e:
         return jsonify({"error": f"Error inserting journal entry: {e}"}), 500
 
+# ----------------------------
+# Friend Making Endpoints
+# ----------------------------
+
+@app.route("/find_friend/<int:id>", methods=["POST"])
+def find_friend(id):
+    # Check database connection 
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+    
+    # Fetch the VECTOR representation of smost recent AI insight for the user
+    query = """
+        SELECT embedding 
+        FROM ai_insight 
+        WHERE user_id = %s 
+        ORDER BY insight_date DESC 
+        LIMIT 1;
+    """
+    db_connection.execute_query(query, (id,))
+    embedding = db_connection.cursor.fetchone()[0]
+
+    if not embedding:
+        return jsonify({"error": f"No AI insights available for user {id}"}), 404
+    
+    # Find the most similar insight using pgvector similarity search
+    similarity_query = """
+        SELECT ai_insight.user_id, username, insights, embedding <-> %s AS distance
+        FROM ai_insight JOIN users ON ai_insight.user_id = users.user_id
+        WHERE ai_insight.user_id != %s
+        ORDER BY distance ASC
+        LIMIT 1;
+    """
+    
+    db_connection.execute_query(similarity_query, (embedding, id))
+    similar_insight = db_connection.cursor.fetchone()
+
+    if not similar_insight:
+        return jsonify({"error": "No similar insights found"}), 404
+            
+    similar_user_id, similar_username, similar_insight_text, _ = similar_insight
+    
+    # Insert connection entry into database
+    try:
+        insert_query = """
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
+            VALUES (%s, %s, %s, %s, %s);
+        """
+        db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False))
+        return jsonify({"message": f"Connection added successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Error inserting connections: {e}"}), 500
+        
 # ----------------------------
 # Utility Functions for Database Connection
 # ----------------------------
