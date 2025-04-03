@@ -16,7 +16,7 @@ import re
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Global DB connection (for endpoints using the database)
 db_connection = None
@@ -314,14 +314,14 @@ def find_friend(id):
     
     # Fetch the VECTOR representation of smost recent AI insight for the user
     query = """
-        SELECT embedding 
+        SELECT embedding, insights
         FROM ai_insight 
         WHERE user_id = %s 
         ORDER BY insight_date DESC 
         LIMIT 1;
     """
     db_connection.execute_query(query, (id,))
-    embedding = db_connection.cursor.fetchone()[0]
+    embedding, user_A_insight = db_connection.cursor.fetchone()
 
     if not embedding:
         return jsonify({"error": f"No AI insights available for user {id}"}), 404
@@ -341,15 +341,15 @@ def find_friend(id):
     if not similar_insight:
         return jsonify({"error": "No similar insights found"}), 404
             
-    similar_user_id, similar_username, similar_insight_text, _ = similar_insight
+    similar_user_id, similar_username, user_B_insights, _ = similar_insight
     
     # Insert connection entry into database
     try:
         insert_query = """
-            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
-            VALUES (%s, %s, %s, %s, %s);
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group, user_insight, matched_insight)
+            VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
-        db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False))
+        db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False, user_A_insight, user_B_insights))
         return jsonify({"message": f"Connection added successfully"}), 201
     except Exception as e:
         return jsonify({"error": f"Error inserting connections: {e}"}), 500
