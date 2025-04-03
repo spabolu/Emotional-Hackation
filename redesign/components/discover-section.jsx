@@ -45,7 +45,6 @@ const initialMessages = [
     id: 101,
     name: "Frank Lee",
     message: "Are we still on for lunch tomorrow?",
-    photo: "/placeholder.svg?height=40&width=40",
   },
 ];
 
@@ -157,7 +156,6 @@ export default function DiscoverSection() {
                 ) || {
                   id: message.id,
                   name: message.name,
-                  photo: message.photo,
                   description: "Chat contact",
                 };
                 handleConnect(user);
