@@ -14,7 +14,7 @@ from flask_cors import CORS
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # Global DB connection (for endpoints using the database)
 db_connection = None
@@ -255,8 +255,10 @@ def handle_chat():
         print(f"Unhandled exception in /chat endpoint: {e}")
         return jsonify({"error": "An unexpected server error occurred."}), 500
 
-@app.route('/fetch_journals/<int:user_id>', methods=["GET"])
+@app.route('/fetch_journals/<int:user_id>', methods=["GET", "OPTIONS"])
 def fetch_journals(user_id):
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
     # Check database connection 
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
