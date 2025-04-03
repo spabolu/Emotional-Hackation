@@ -9,7 +9,7 @@ import { format, isToday, parseISO } from "date-fns";
 export default function MoodCheckIn({ selectedDate, onDateChange }) {
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedActivities, setSelectedActivities] = useState([]);
-  const [notes, setNotes] = useState("");
+  const [positiveThoughts, setPositiveThoughts] = useState(["", "", ""]);
   const [dateEntry, setDateEntry] = useState(null);
   const [dataUpdated, setDataUpdated] = useState(false);
 
@@ -23,13 +23,23 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
       setDateEntry(moodData[currentDate]);
       setSelectedMood(moodData[currentDate].mood);
       setSelectedActivities(moodData[currentDate].activities || []);
-      setNotes(moodData[currentDate].notes || "");
+
+      // Handle the positive thoughts from stored data
+      if (
+        moodData[currentDate].positiveThoughts &&
+        Array.isArray(moodData[currentDate].positiveThoughts)
+      ) {
+        setPositiveThoughts(moodData[currentDate].positiveThoughts);
+      } else {
+        // If old format with notes or no data, initialize empty array
+        setPositiveThoughts(["", "", ""]);
+      }
     } else {
       // Reset form if no entry for selected date
       setDateEntry(null);
       setSelectedMood(null);
       setSelectedActivities([]);
-      setNotes("");
+      setPositiveThoughts(["", "", ""]);
     }
 
     if (dataUpdated) {
@@ -37,15 +47,57 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
     }
   }, [currentDate, dataUpdated]);
 
+  // Update a specific positive thought at given index
+  const updatePositiveThought = (index, value) => {
+    const updatedThoughts = [...positiveThoughts];
+    updatedThoughts[index] = value;
+    setPositiveThoughts(updatedThoughts);
+  };
+
   const moods = [
-    { name: "Happy", emoji: "😊", color: "bg-yellow-100 hover:bg-yellow-200 border-yellow-300 text-yellow-800" },
-    { name: "Sad", emoji: "😔", color: "bg-blue-100 hover:bg-blue-200 border-blue-300 text-blue-800" },
-    { name: "Neutral", emoji: "😐", color: "bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800" },
-    { name: "Excited", emoji: "😃", color: "bg-pink-100 hover:bg-pink-200 border-pink-300 text-pink-800" },
-    { name: "Anxious", emoji: "😰", color: "bg-purple-100 hover:bg-purple-200 border-purple-300 text-purple-800" },
-    { name: "Relaxed", emoji: "😌", color: "bg-green-100 hover:bg-green-200 border-green-300 text-green-800" },
-    { name: "Tired", emoji: "😴", color: "bg-orange-100 hover:bg-orange-200 border-orange-300 text-orange-800" },
-    { name: "Grateful", emoji: "🙏", color: "bg-teal-100 hover:bg-teal-200 border-teal-300 text-teal-800" },
+    {
+      name: "Happy",
+      emoji: "😊",
+      color:
+        "bg-yellow-100 hover:bg-yellow-200 border-yellow-300 text-yellow-800",
+    },
+    {
+      name: "Sad",
+      emoji: "😔",
+      color: "bg-blue-100 hover:bg-blue-200 border-blue-300 text-blue-800",
+    },
+    {
+      name: "Neutral",
+      emoji: "😐",
+      color: "bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800",
+    },
+    {
+      name: "Excited",
+      emoji: "😃",
+      color: "bg-pink-100 hover:bg-pink-200 border-pink-300 text-pink-800",
+    },
+    {
+      name: "Anxious",
+      emoji: "😰",
+      color:
+        "bg-purple-100 hover:bg-purple-200 border-purple-300 text-purple-800",
+    },
+    {
+      name: "Relaxed",
+      emoji: "😌",
+      color: "bg-green-100 hover:bg-green-200 border-green-300 text-green-800",
+    },
+    {
+      name: "Tired",
+      emoji: "😴",
+      color:
+        "bg-orange-100 hover:bg-orange-200 border-orange-300 text-orange-800",
+    },
+    {
+      name: "Grateful",
+      emoji: "🙏",
+      color: "bg-teal-100 hover:bg-teal-200 border-teal-300 text-teal-800",
+    },
   ];
 
   const activities = [
@@ -77,7 +129,7 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
       date: currentDate,
       mood: selectedMood,
       activities: selectedActivities,
-      notes: notes,
+      positiveThoughts: positiveThoughts,
       timestamp: new Date().toISOString(),
     };
 
@@ -201,19 +253,26 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
       </div>
 
       <Card className="p-4 bg-white/60 border-fuchsia-200">
-        <h3 className="text-md font-medium text-fuchsia-900 mb-2">
-          What's contributing to your mood?
+        <h3 className="text-md font-medium text-fuchsia-900">
+          Reflect on 3 positive things:
         </h3>
-        <div className="space-y-4">
-          <Textarea
-            placeholder="Share your thoughts and feelings..."
-            className="resize-none bg-white/80 border-fuchsia-200 focus:border-fuchsia-400 focus:ring-fuchsia-400"
-            rows={4}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
+        <div className="space-y-2">
+          {[0, 1, 2].map((index) => (
+            <div key={index} className="flex items-center space-x-2">
+              <label className="text-sm font-medium text-emerald-800 w-36 flex-shrink-0">
+                I am grateful for:
+              </label>
+              <Textarea
+                className="resize-none bg-white/80 border-fuchsia-200 focus:border-fuchsia-400 focus:ring-fuchsia-400 py-1 px-2 text-sm min-h-8 h-8 placeholder:text-fuchsia-300 placeholder:italic placeholder:text-sm"
+                rows={1}
+                value={positiveThoughts[index]}
+                onChange={(e) => updatePositiveThought(index, e.target.value)}
+                placeholder={`Positive thought #${index + 1}...`}
+              />
+            </div>
+          ))}
 
-          <div className="space-y-2">
+          <div className="space-y-2 pt-3 mt-2 border-t border-fuchsia-100">
             <h4 className="text-sm font-medium text-emerald-800">
               Activities {isCurrentDateToday ? "today" : "on this day"}{" "}
               (optional)
@@ -226,12 +285,19 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
                   size="sm"
                   className={`transition-all ${
                     selectedActivities.includes(activity)
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-300 font-bold shadow-sm"
+                      ? "bg-fuchsia-100 font-medium border-fuchsia-700 shadow-md transform scale-105"
                       : "bg-white/60 text-emerald-700 hover:bg-fuchsia-50 hover:text-fuchsia-700 hover:border-fuchsia-300"
                   }`}
                   onClick={() => toggleActivity(activity)}
                 >
-                  {activity}
+                  {selectedActivities.includes(activity) ? (
+                    <>
+                      <span>✓</span>
+                      {activity}
+                    </>
+                  ) : (
+                    activity
+                  )}
                 </Button>
               ))}
             </div>
@@ -247,7 +313,7 @@ export default function MoodCheckIn({ selectedDate, onDateChange }) {
         {dateEntry ? "Update Entry" : "Save Entry"}
       </Button>
 
-      <div className="pt-2 text-center">
+      <div className="text-center">
         <button
           onClick={clearAllData}
           className="text-sm text-gray-500 hover:text-red-500"
