@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -77,26 +75,6 @@ export default function MoodSection() {
             <CardDescription className="text-emerald-700">
               Select any date to update its mood
             </CardDescription>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={prevMonth}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              <span className="sr-only">Previous month</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={nextMonth}
-            >
-              <ChevronRight className="h-4 w-4" />
-              <span className="sr-only">Next month</span>
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
