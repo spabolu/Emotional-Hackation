@@ -21,7 +21,7 @@ export default function Home() {
             Your safe space to reflect, track your mood, and connect with others
             on their mindfulness journey.
           </p>
-          <StreakCounter currentStreak={42} />
+          <StreakCounter />
         </div>
 
         <Tabs defaultValue="mood" className="w-full max-w-5xl mx-auto">

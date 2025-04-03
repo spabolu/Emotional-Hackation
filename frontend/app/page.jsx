@@ -1,11 +1,12 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import MoodTracker from '@/components/mood-tracker';
-import Journal from '@/components/journal';
+// import Journal from '@/components/journal';
 import ConnectPage from '@/components/connect'
 import AiTherapist from '@/components/ai-therapist';
 import StreakCounter from '@/components/streak-counter';
 import { UserNav } from '@/components/user-nav';
 // import MoodCalendar from '@/components/mood-calendar';
+import JournalHomepage from '@/components/journalhomepage';
 import { Calendar } from 'lucide-react';
 
 export default function Home() {
@@ -36,8 +37,11 @@ export default function Home() {
             <TabsTrigger value="check-in" className="text-center">
               Check-In
             </TabsTrigger>
-            <TabsTrigger value="journal" className="text-center">
+            {/* <TabsTrigger value="journal" className="text-center">
               Journal
+            </TabsTrigger> */}
+            <TabsTrigger value="journalhomepage" className="text-center">
+              JournalHomePage
             </TabsTrigger>
             <TabsTrigger value="discover" className="text-center">
               Discover
@@ -48,8 +52,12 @@ export default function Home() {
             <MoodTracker />
           </TabsContent>
 
-          <TabsContent value="journal" className="space-y-4">
+          {/* <TabsContent value="journal" className="space-y-4">
             <Journal />
+          </TabsContent> */}
+
+          <TabsContent value="journalhomepage" className="space-y-4">
+            <JournalHomepage />
           </TabsContent>
 
           <TabsContent value="discover" className="space-y-4">

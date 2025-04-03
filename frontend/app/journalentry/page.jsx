@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // For navigation
 import {
   Card,
   CardContent,
@@ -13,17 +14,19 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { Save, CalendarIcon, FileText } from 'lucide-react';
+import { Save, CalendarIcon, FileText, ArrowLeft } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import AiTherapist from '@/components/ai-therapist'; // Import AiTherapist
+import { UserNav } from '@/components/user-nav';
 
 export default function Journal() {
-  const [entries, setEntries] = useState([]);
+  const [entries, setEntries] = useState([]); // State to store journal entries
   const [currentEntry, setCurrentEntry] = useState({
     id: Date.now().toString(),
     title: '',
@@ -32,31 +35,45 @@ export default function Journal() {
   });
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAiTherapist, setShowAiTherapist] = useState(false); // State to control AI Therapist visibility
-  const [threadId, setThreadId] = useState(''); // Added to track the thread ID
+  const [threadId, setThreadId] = useState('thread_1ZtkgumkEA1re5OIdxfw0TRc'); // Added to track the thread ID
+  const [showDialog, setShowDialog] = useState(false); // State to control popup visibility
+  const [AiSummaryConsent, setAiSummaryConsent] = useState(null); // State for user consent
+  const router = useRouter();
 
   useEffect(() => {
-    const savedEntries = localStorage.getItem('journalEntries');
-    if (savedEntries) {
-      setEntries(
-        JSON.parse(savedEntries).map((entry) => ({
-          ...entry,
-          date: new Date(entry.date),
-        }))
-      );
-    }
+    // Fetch all journal entries from the API
+    const fetchEntries = async () => {
+      try {
+        const userId = 1; // Replace with the actual user ID
+        const response = await fetch(
+          `http://127.0.0.1:5000/fetch_journals/${userId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-    // Check if there's an entry for the selected date
-    const todayEntry = findEntryForDate(selectedDate);
-    if (todayEntry) {
-      setCurrentEntry(todayEntry);
-    } else {
-      setCurrentEntry({
-        id: Date.now().toString(),
-        title: '',
-        content: '',
-        date: selectedDate,
-      });
-    }
+        if (!response.ok) {
+          throw new Error('Failed to fetch journal entries');
+        }
+
+        const data = await response.json();
+        setEntries(
+          data.journals.map((entry) => ({
+            id: entry.id || Date.now().toString(), // Ensure each entry has a unique ID
+            title: entry.title,
+            content: entry.preview,
+            date: new Date(entry.entry_date),
+          }))
+        );
+      } catch (error) {
+        console.error('Error fetching journal entries:', error);
+      }
+    };
+
+    fetchEntries();
   }, [selectedDate]);
 
   const findEntryForDate = (date) => {
@@ -73,36 +90,25 @@ export default function Journal() {
   const saveEntry = async () => {
     if (!currentEntry.content.trim()) return;
 
-    const newEntries = [...entries];
-    const existingEntryIndex = newEntries.findIndex(
-      (entry) => entry.date.toDateString() === currentEntry.date.toDateString()
-    );
-
-    if (existingEntryIndex >= 0) {
-      newEntries[existingEntryIndex] = currentEntry;
-    } else {
-      newEntries.push(currentEntry);
-    }
-
-    setEntries(newEntries);
-    localStorage.setItem('journalEntries', JSON.stringify(newEntries));
-
-    // Prepare data to send to the API with the new structure
+    // Prepare data to send to the API
     const data = {
-      entry: currentEntry.content, // Changed to match expected API format
+      user_id: 1, // Replace with the actual user ID
+      title: currentEntry.title,
+      content: currentEntry.content,
+      entry_date: currentEntry.date.toISOString(),
     };
 
     try {
-      // Send data to the new API endpoint with thread_id in header if available
+      // Send data to the API endpoint
       const headers = {
         'Content-Type': 'application/json',
       };
-      
+
       if (threadId) {
         headers['X-Thread-ID'] = threadId;
       }
 
-      const response = await fetch('http://127.0.0.1:5000/journal-entry', {
+      const response = await fetch('http://127.0.0.1:5000/add_journal_entry', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(data),
@@ -113,7 +119,7 @@ export default function Journal() {
       }
 
       const responseData = await response.json();
-      
+
       // Save the thread ID for future conversations
       if (responseData.thread_id) {
         setThreadId(responseData.thread_id);
@@ -121,13 +127,63 @@ export default function Journal() {
 
       console.log('Journal entry saved successfully');
       setShowAiTherapist(true); // Show AI Therapist after saving the entry
+
+      // Refresh the entries after saving
+      const updatedEntries = await fetch(
+        `http://127.0.0.1:5000/fetch_journals/1`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (updatedEntries.ok) {
+        const updatedData = await updatedEntries.json();
+        setEntries(
+          updatedData.journals.map((entry) => ({
+            id: entry.id || Date.now().toString(),
+            title: entry.title,
+            content: entry.preview,
+            date: new Date(entry.entry_date),
+          }))
+        );
+      }
     } catch (error) {
       console.error('Error saving journal entry:', error);
     }
   };
 
+  const handleBackClick = () => {
+    setShowDialog(true); // Show the popup dialog
+  };
+
+  const handleConsent = (consent) => {
+    setAiSummaryConsent(consent); // Set the consent value
+    console.log(consent);
+    setShowDialog(false); // Close the dialog
+    router.push('/'); // Redirect to the homepage
+  };
+
   return (
     <div>
+      <header className="border-b bg-white/50 backdrop-blur-sm">
+        <div className="container flex h-16 items-center justify-between pl-4">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              className="flex items-center space-x-2"
+              onClick={handleBackClick}
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span>Back</span>
+            </Button>
+            <h1 className="text-2xl font-bold text-teal-700">Journal</h1>
+          </div>
+          <UserNav />
+        </div>
+      </header>
       <Card className="border-teal-200 bg-white/80">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <div>
@@ -197,13 +253,34 @@ export default function Journal() {
           </Button>
         </CardFooter>
       </Card>
-      {/* Pass threadId and journalEntry to AiTherapist */}
-      {showAiTherapist && (
-        <AiTherapist 
-          threadId={threadId} 
-          setThreadId={setThreadId}
-          journalEntry={currentEntry.content}
-        />
+      {/* Conditionally render AiTherapist */}
+      {showAiTherapist && <AiTherapist />}
+
+      {/* Popup Dialog */}
+      {showDialog && (
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Can we confidentially use this data to connect others?
+              </DialogTitle>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                onClick={() => handleConsent(true)}
+                className="bg-teal-600 hover:bg-teal-700"
+              >
+                Of Course!
+              </Button>
+              <Button
+                onClick={() => handleConsent(false)}
+                variant="outline"
+              >
+                No Thank You
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

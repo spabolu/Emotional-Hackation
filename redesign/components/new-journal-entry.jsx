@@ -7,28 +7,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { motion } from "framer-motion";
 
-export default function NewJournalEntry({ onClose }) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
+export default function NewJournalEntry({ onClose, onSave }) {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [saving, setSaving] = useState(false); // State to track saving status
 
-  const handleSave = () => {
-    // Create a new entry object
-    const newEntry = {
-      id: Date.now(),
-      title: title || "Untitled Entry",
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim()) return;
+
+    const data = {
+      user_id: 1,
+      title: title || 'Untitled Entry',
       content,
-      excerpt: content.substring(0, 150) + (content.length > 150 ? "..." : ""),
-      date: new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
-      mood: "Neutral",
-      tags: ["untagged"],
+      entry_date: new Date().toISOString(),
     };
 
-    console.log("New journal entry:", newEntry);
-    onClose();
+    try {
+      setSaving(true);
+      const response = await fetch('http://127.0.0.1:5000/add_journal_entry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save journal entry');
+      }
+
+      const responseData = await response.json();
+      console.log('Journal entry saved successfully:', responseData);
+
+      if (onSave) {
+        onSave(responseData);
+      }
+
+      onClose();
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+      alert('Failed to save journal entry. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const isFormValid = () => {
@@ -48,7 +70,7 @@ export default function NewJournalEntry({ onClose }) {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 20, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -62,7 +84,7 @@ export default function NewJournalEntry({ onClose }) {
             onClick={onClose}
             className="text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer"
           >
-            <X className="h-5 w-5  " />
+            <X className="h-5 w-5" />
           </Button>
         </div>
 
@@ -104,11 +126,11 @@ export default function NewJournalEntry({ onClose }) {
             <div className="text-xs text-emerald-700 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" />
               <span>
-                {new Date().toLocaleDateString("en-US", {
-                  weekday: "long",
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
                 })}
               </span>
             </div>
@@ -127,10 +149,10 @@ export default function NewJournalEntry({ onClose }) {
 
           <Button
             onClick={handleSave}
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || saving}
             className="bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
           >
-            Save Entry
+            {saving ? 'Saving...' : 'Save Entry'}
           </Button>
         </div>
       </motion.div>
