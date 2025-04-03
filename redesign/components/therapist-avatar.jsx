@@ -199,7 +199,7 @@ export default function TherapistAvatar({ entryContent, mood }) {
           className="bg-white/60 border-fuchsia-200 focus:border-fuchsia-400 focus:ring-fuchsia-400"
         />
         <Button onClick={handleSendMessage} className="bg-fuchsia-600 hover:bg-fuchsia-700">
-          <Send className="h-4 w-4" />
+          <Send className="h-4 w-4 text-white" />
         </Button>
       </div>
     </div>
