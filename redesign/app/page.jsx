@@ -28,7 +28,7 @@ export default function Home() {
           <TabsList className="grid w-full grid-cols-3 mb-8 bg-white/60">
             <TabsTrigger
               value="mood"
-              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900"
+              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900 cursor-pointer"
             >
               <CalendarCheck className="h-4 w-4" />
               <span className="hidden sm:inline">Mood Tracking</span>
@@ -36,14 +36,14 @@ export default function Home() {
             </TabsTrigger>
             <TabsTrigger
               value="journal"
-              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900"
+              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900 cursor-pointer"
             >
               <BookOpen className="h-4 w-4" />
               <span>Journal</span>
             </TabsTrigger>
             <TabsTrigger
               value="discover"
-              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900"
+              className="flex items-center gap-2 data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900 cursor-pointer"
             >
               <Users className="h-4 w-4" />
               <span>Discover</span>

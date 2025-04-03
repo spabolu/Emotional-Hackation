@@ -21,13 +21,13 @@ export default function DiscoverSection() {
         <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6 bg-white/60">
           <TabsTrigger
             value="feed"
-            className="data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900"
+            className="data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900 cursor-pointer"
           >
             Community Feed
           </TabsTrigger>
           <TabsTrigger
             value="people"
-            className="data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900"
+            className="data-[state=active]:bg-fuchsia-100 data-[state=active]:text-fuchsia-900 cursor-pointer"
           >
             People to Follow
           </TabsTrigger>

@@ -28,7 +28,7 @@ export default function JournalSection() {
           </p>
         </div>
         <Button
-          className="bg-lavender-600 hover:bg-lavender-700"
+          className="bg-fuchsia-600 hover:bg-fuchsia-700 cursor-pointer text-white"
           onClick={() => setIsNewEntryOpen(true)}
         >
           <Plus className="mr-2 h-4 w-4" /> New Entry
