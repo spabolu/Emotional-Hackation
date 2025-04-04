@@ -5,7 +5,14 @@ import { X, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { motion } from "framer-motion";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { motion } from 'framer-motion';
 import AiTherapist from "@/components/ai-therapist";
 
 export default function NewJournalEntry({ onClose, onSave }) {
@@ -13,10 +20,13 @@ export default function NewJournalEntry({ onClose, onSave }) {
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false); // State to track saving status
   const [showAiTherapist, setShowAiTherapist] = useState(false);
-  const [threadId, setThreadId] = useState("");
+  const [threadId, setThreadId] = useState('');
+  const [showDialog, setShowDialog] = useState(false); // State to control the pop-up modal
+  const [aiSummaryConsent, setAiSummaryConsent] = useState(null); // State to store user consent
+  const [isEditable, setIsEditable] = useState(true); // State to control editability of fields
 
-  const contentRef = useRef(null);         // For scrolling container
-  const therapistRef = useRef(null);       // For scrolling to therapist
+  const contentRef = useRef(null); // For scrolling container
+  const therapistRef = useRef(null); // For scrolling to therapist
 
   const handleSave = async () => {
     if (!title.trim() || !content.trim()) return;
@@ -46,6 +56,9 @@ export default function NewJournalEntry({ onClose, onSave }) {
       const responseData = await response.json();
       console.log('Journal entry saved successfully:', responseData);
 
+      // Disable editing after saving
+      setIsEditable(false);
+
       // Call onSave with the response data if it exists
       if (onSave) {
         onSave(responseData);
@@ -53,11 +66,11 @@ export default function NewJournalEntry({ onClose, onSave }) {
 
       // Show AI therapist
       setShowAiTherapist(true);
-      
+
       // Scroll down to therapist after a tiny delay
       setTimeout(() => {
         if (therapistRef.current) {
-          therapistRef.current.scrollIntoView({ behavior: "smooth" });
+          therapistRef.current.scrollIntoView({ behavior: 'smooth' });
         }
       }, 300);
     } catch (error) {
@@ -65,6 +78,40 @@ export default function NewJournalEntry({ onClose, onSave }) {
       alert('Failed to save journal entry. Please try again.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleConsent = async (consent) => {
+    try {
+      setAiSummaryConsent(consent); // Store the user's consent locally
+      console.log('AI Summary Consent:', consent);
+
+      // Send the consent value to the backend
+      const response = await fetch(
+        'http://127.0.0.1:5000/journal_consent_true/1',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ aiSummaryConsent }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || 'Failed to update AI summary consent'
+        );
+      }
+
+      const responseData = await response.json();
+      console.log('Consent updated successfully:', responseData);
+
+      setShowDialog(false); // Close the dialog after successful update
+    } catch (error) {
+      console.error('Error updating AI summary consent:', error);
+      alert('Failed to update AI summary consent. Please try again.');
     }
   };
 
@@ -96,7 +143,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClose}
+            onClick={() => setShowDialog(true)} // Show the popup dialog
             className="text-fuchsia-600 hover:text-fuchsia-700 cursor-pointer"
           >
             <X className="h-5 w-5" />
@@ -119,6 +166,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="bg-white/60 border-fuchsia-200 focus:border-fuchsia-400 focus:ring-fuchsia-400"
+                disabled={!isEditable} // Disable editing if not editable
               />
             </div>
 
@@ -135,6 +183,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="min-h-[400px] resize-none bg-white/60 border-fuchsia-200 focus:border-fuchsia-400 focus:ring-fuchsia-400"
+                disabled={!isEditable} // Disable editing if not editable
               />
             </div>
 
@@ -175,13 +224,52 @@ export default function NewJournalEntry({ onClose, onSave }) {
 
           <Button
             onClick={handleSave}
-            disabled={!isFormValid() || saving}
+            disabled={!isFormValid() || saving || !isEditable} // Disable if not editable
             className="bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
           >
             {saving ? 'Saving...' : 'Save Entry'}
           </Button>
         </div>
       </motion.div>
+
+      {/* Popup Dialog */}
+      {showDialog && (
+        <Dialog open={showDialog} onOpenChange={setShowDialog}>
+          <DialogContent className="fixed inset-0 flex items-center justify-center">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-auto">
+              <DialogHeader className="text-center">
+                <DialogTitle className="text-lg font-semibold text-gray-800">
+                  Use Your Data to Help Others?
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-gray-600 text-center mt-2">
+                Can we confidentially use this data to connect others and
+                improve their experience?
+              </p>
+              <DialogFooter className="flex justify-center gap-4 mt-4">
+                <Button
+                  onClick={() => {
+                    handleConsent(true);
+                    setShowDialog(false);
+                  }}
+                  className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+                >
+                  Of Course!
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleConsent(false);
+                    setShowDialog(false);
+                  }}
+                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  No Thank You
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </motion.div>
   );
 }
