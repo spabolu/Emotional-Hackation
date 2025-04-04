@@ -18,7 +18,7 @@ export default function DiscoverSection() {
   useEffect(() => {
     const fetchConnections = async () => {
       try {
-        const userId = 2; // Replace with the actual user ID
+        const userId = 7; // Replace with the actual user ID
 
         // Fetch all connections
         const response = await fetch(

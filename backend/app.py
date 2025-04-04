@@ -524,7 +524,8 @@ def ice_breaker(id):
         gpt = LLM()
         prompt = (
             "You are an assistant that helps spark conversations between users based on personal insights.\n"
-            "Given the two insights below, write one concise friendly and creative icebreaker question or statement to help the users begin chatting. "
+            "Say something like you guys should talk to one another\n"
+            "Given the two insights below, write one concise friendly and creative icebreaker statement to help the users begin chatting. "
             "The tone should be light, engaging, and respectful. Avoid using emojis or overly casual language.\n\n"
             f"User 1 Insight: {insight1}\n"
             f"User 2 Insight: {insight2}\n\n"

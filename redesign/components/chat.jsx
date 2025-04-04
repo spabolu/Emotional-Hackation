@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,42 @@ import { ArrowLeft, Send, Bot } from "lucide-react";
 import BoringAvatar from "boring-avatars";
 
 export function Chat({ user, onBack, onFirstMessage }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: "ai",
-      content: `Hi`,
-    },
-  ]);
+  const [messages, setMessages] =  useState([]);
+
+  // Fetch icebreaker from the API
+  useEffect(() => {
+    const fetchIcebreaker = async () => {
+      try {
+        // Fetch all icebreaker
+        const response = await fetch(
+          `http://127.0.0.1:5000/ice_breaker/${15}`
+        );
+        if (!response.ok) {
+          throw new Error(
+            `Error fetching icebreaker: ${response.statusText}`
+          );
+        }
+        const data = await response.json();
+        console.log("icebreaker (raw):", data); // Debugging log
+
+        setMessages([
+          {
+            id: Date.now(),
+            sender: "ai",
+            content: data.ice_breaker,
+          },
+        ]);
+
+      } catch (err) {
+        console.error("Error fetching icebreaker:", err); // Debugging log
+        setError(err.message);
+      }
+    };
+
+    fetchIcebreaker();
+  }, []);
+
+
   const [newMessage, setNewMessage] = useState("");
   const [hasUserSentMessage, setHasUserSentMessage] = useState(false);
 
