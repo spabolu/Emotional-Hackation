@@ -285,6 +285,46 @@ def journal_consent_true(user_id):
 
 
 # ----------------------------
+# Discover Section
+# ----------------------------
+@app.route('/fetch_connections/<int:user_id>', methods=["GET", "OPTIONS"])
+def fetch_connections(user_id):
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
+
+    # Check database connection
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+
+    # Query to fetch all connections for the user
+    query = """
+        SELECT id, matched_id, display_name, state, is_group, user_insight, matched_insight
+        FROM public.connections
+        WHERE user_id = %s
+    """
+    db_connection.execute_query(query, (user_id,))
+    connections = db_connection.cursor.fetchall()
+
+    # Debugging log to check query results
+    print(f"Fetched connections for user {user_id}: {connections}")
+
+    # Format the response
+    connection_list = [
+        {
+            "id": connection[0],
+            "matched_id": connection[1],
+            "display_name": connection[2],
+            "state": connection[3],
+            "is_group": connection[4],
+            "user_insight": connection[5],
+            "matched_insight": connection[6],
+        }
+        for connection in connections
+    ]
+
+    return jsonify({"connections": connection_list}), 200
+
+# ----------------------------
 # ASYNCRONOUS Vector AI to Find Friends
 # ----------------------------
 @app.route("/add_ai_insight/<int:id>", methods=["POST"])
