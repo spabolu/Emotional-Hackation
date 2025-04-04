@@ -163,24 +163,26 @@ export default function NewJournalEntry({ onClose, onSave }) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-fuchsia-200 bg-white/50 flex justify-between">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="bg-white/60 border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
-          >
-            Cancel
-          </Button>
+         {/* Footer */}
+         {!showAiTherapist && (
+          <div className="p-4 border-t border-fuchsia-200 bg-white/50 flex justify-between">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="bg-white/60 border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
+            >
+              Cancel
+            </Button>
 
-          <Button
-            onClick={handleSave}
-            disabled={!isFormValid() || saving}
-            className="text-white bg-fuchsia-700 hover:bg-fuchsia-900 disabled:bg-fuchsia-700"
-          >
-            {saving ? 'Saving...' : 'Save Entry'}
-          </Button>
-        </div>
+            <Button
+              onClick={handleSave}
+              disabled={!isFormValid() || saving}
+              className="text-white bg-fuchsia-700 hover:bg-fuchsia-900 disabled:bg-fuchsia-700"
+            >
+              {saving ? 'Saving...' : 'Save Entry'}
+            </Button>
+          </div>
+        )}
       </motion.div>
     </motion.div>
   );
