@@ -502,6 +502,40 @@ def find_groups(user_id):
     except Exception as e:
         return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
 
+@app.route("/ice_breaker/<int:id>", methods=["GET"])
+def ice_breaker(id):
+    # Check database connection 
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+    
+    try:
+        query = """
+            SELECT user_insight, matched_insight FROM public.connections
+            WHERE id = %s
+        """
+        db_connection.execute_query(query, (id,))
+        insights = db_connection.cursor.fetchone()
+
+        if not insights:
+            return jsonify({"error": "No insights found for the given ID"}), 404
+
+        insight1, insight2 = insights
+
+        gpt = LLM()
+        prompt = (
+            "You are an assistant that helps spark conversations between users based on personal insights.\n"
+            "Given the two insights below, write one concise friendly and creative icebreaker question or statement to help the users begin chatting. "
+            "The tone should be light, engaging, and respectful. Avoid using emojis or overly casual language.\n\n"
+            f"User 1 Insight: {insight1}\n"
+            f"User 2 Insight: {insight2}\n\n"
+        )
+        icebreaker = gpt.ask(prompt)
+        print(icebreaker)
+
+        return jsonify({"ice_breaker": icebreaker}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error generating ice breaker: {str(e)}"}), 500
 
 # ----------------------------
 # Utility Functions for Database Connection
