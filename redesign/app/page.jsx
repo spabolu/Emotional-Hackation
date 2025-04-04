@@ -15,7 +15,7 @@ export default function Home() {
       <main className="px-4 py-12">
         <div className="flex flex-col items-center text-center space-y-4 mb-8">
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-fuchsia-900">
-            Welcome to Serene Journal
+            Welcome to MindfulMe Journal
           </h1>
           <p className="text-xl text-emerald-800 max-w-2xl">
             Your safe space to reflect, track your mood, and connect with others

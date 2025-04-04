@@ -11,7 +11,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-xl font-semibold text-fuchsia-900">
-              🐿️ Serene
+              🐿️ MindfulMe
             </span>
           </Link>
         </div>
