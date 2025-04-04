@@ -229,8 +229,9 @@ export default function NewJournalEntry({ onClose, onSave }) {
             className="bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
           >
             {saving ? 'Saving...' : 'Save Entry'}
-          </Button>
-        </div>
+            </Button>
+          </div>
+        )}
       </motion.div>
 
       {/* Popup Dialog */}
