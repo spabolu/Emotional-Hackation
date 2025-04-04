@@ -12,9 +12,7 @@ export function Chat({ user, onBack, onFirstMessage }) {
     {
       id: 1,
       sender: "ai",
-      content: `Hey there! I noticed you're interested in ${user.description
-        .split("&")[1]
-        .trim()}. I'm curious to hear more about that!`,
+      content: `Hi`,
     },
   ]);
   const [newMessage, setNewMessage] = useState("");

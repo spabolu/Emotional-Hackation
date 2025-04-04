@@ -10,7 +10,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-xl font-semibold text-fuchsia-900">
-                🐿️ Serene
+                🐿️ MindfulMe
               </span>
             </div>
             <p className="text-emerald-700 text-sm">

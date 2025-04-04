@@ -285,6 +285,46 @@ def journal_consent_true(user_id):
 
 
 # ----------------------------
+# Discover Section
+# ----------------------------
+@app.route('/fetch_connections/<int:user_id>', methods=["GET", "OPTIONS"])
+def fetch_connections(user_id):
+    if request.method == "OPTIONS":
+        return "", 200  # Handle preflight request
+
+    # Check database connection
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+
+    # Query to fetch all connections for the user
+    query = """
+        SELECT id, matched_id, display_name, state, is_group, user_insight, matched_insight
+        FROM public.connections
+        WHERE user_id = %s
+    """
+    db_connection.execute_query(query, (user_id,))
+    connections = db_connection.cursor.fetchall()
+
+    # Debugging log to check query results
+    print(f"Fetched connections for user {user_id}: {connections}")
+
+    # Format the response
+    connection_list = [
+        {
+            "id": connection[0],
+            "matched_id": connection[1],
+            "display_name": connection[2],
+            "state": connection[3],
+            "is_group": connection[4],
+            "user_insight": connection[5],
+            "matched_insight": connection[6],
+        }
+        for connection in connections
+    ]
+
+    return jsonify({"connections": connection_list}), 200
+
+# ----------------------------
 # ASYNCRONOUS Vector AI to Find Friends
 # ----------------------------
 @app.route("/add_ai_insight/<int:id>", methods=["POST"])
@@ -462,6 +502,40 @@ def find_groups(user_id):
     except Exception as e:
         return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
 
+@app.route("/ice_breaker/<int:id>", methods=["GET"])
+def ice_breaker(id):
+    # Check database connection 
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+    
+    try:
+        query = """
+            SELECT user_insight, matched_insight FROM public.connections
+            WHERE id = %s
+        """
+        db_connection.execute_query(query, (id,))
+        insights = db_connection.cursor.fetchone()
+
+        if not insights:
+            return jsonify({"error": "No insights found for the given ID"}), 404
+
+        insight1, insight2 = insights
+
+        gpt = LLM()
+        prompt = (
+            "You are an assistant that helps spark conversations between users based on personal insights.\n"
+            "Given the two insights below, write one concise friendly and creative icebreaker question or statement to help the users begin chatting. "
+            "The tone should be light, engaging, and respectful. Avoid using emojis or overly casual language.\n\n"
+            f"User 1 Insight: {insight1}\n"
+            f"User 2 Insight: {insight2}\n\n"
+        )
+        icebreaker = gpt.ask(prompt)
+        print(icebreaker)
+
+        return jsonify({"ice_breaker": icebreaker}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error generating ice breaker: {str(e)}"}), 500
 
 # ----------------------------
 # Utility Functions for Database Connection
