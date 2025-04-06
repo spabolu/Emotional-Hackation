@@ -56,6 +56,9 @@ export default function NewJournalEntry({ onClose, onSave }) {
       const responseData = await response.json();
       console.log('Journal entry saved successfully:', responseData);
 
+      // Show the consent dialog after saving
+      setShowDialog(true);
+
       // Disable editing after saving
       setIsEditable(false);
 
@@ -235,36 +238,32 @@ export default function NewJournalEntry({ onClose, onSave }) {
       {/* Popup Dialog */}
       {showDialog && (
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-auto">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-lg font-semibold text-gray-800">
-                Use Your Data to Help Others?
-              </DialogTitle>
-            </DialogHeader>
-            <p className="text-sm text-gray-600 text-center mt-2">
-              Can we confidentially use this data to connect others and improve
-              their experience?
-            </p>
-            <DialogFooter className="flex justify-center gap-4 mt-4">
-              <Button
-                onClick={() => {
-                  handleConsent(true);
-                  setShowDialog(false);
-                }}
-                className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
-              >
-                Of Course!
-              </Button>
-              <Button
-                onClick={() => {
-                  handleConsent(false);
-                  setShowDialog(false);
-                }}
-                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-              >
-                No Thank You
-              </Button>
-            </DialogFooter>
+          <DialogContent className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+              <DialogHeader className="text-center">
+                <DialogTitle className="text-lg font-semibold text-gray-800">
+                  Use Your Data to Help Others?
+                </DialogTitle>
+              </DialogHeader>
+              <p className="text-sm text-gray-600 text-center mt-2">
+                Can we confidentially use this data to connect others and
+                improve their experience?
+              </p>
+              <DialogFooter className="flex justify-center gap-4 mt-4">
+                <Button
+                  onClick={() => handleConsent(true)}
+                  className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+                >
+                  Of Course!
+                </Button>
+                <Button
+                  onClick={() => handleConsent(false)}
+                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  No Thank You
+                </Button>
+              </DialogFooter>
+            </div>
           </DialogContent>
         </Dialog>
       )}
