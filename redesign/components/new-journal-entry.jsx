@@ -59,6 +59,9 @@ export default function NewJournalEntry({ onClose, onSave }) {
       // Show the consent dialog after saving
       // setShowDialog(true);
 
+      // Show the consent dialog after saving
+      // setShowDialog(true);
+
       // Disable editing after saving
       setIsEditable(false);
 
