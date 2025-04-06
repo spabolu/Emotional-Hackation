@@ -1,35 +1,45 @@
 import os
-from flask import Flask, request, jsonify
-from dotenv import load_dotenv
-from llm import LLM
-import llm
-from db_connection import DatabaseConnection
-from text_embedder import TextEmbedder
-from llm import LLM
-from datetime import datetime
-import json
-from flask_cors import CORS
 import re
+import json
+from datetime import datetime
 
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
 
-# Load environment variables from .env file if it exists
-load_dotenv()
+# Custom imports: ensure these modules are available in your project
+from llm import LLM  # For interacting with the OpenAI API
+import llm         # Provides stateful assistant functions
+from db_connection import DatabaseConnection  # Manages database connectivity
+from text_embedder import TextEmbedder          # Used for generating text embeddings
 
+# -----------------------------------------------------------------------------
+# Load Environment Variables
+# -----------------------------------------------------------------------------
+load_dotenv()  # Load .env file if it exists
+
+# -----------------------------------------------------------------------------
+# Flask Application Setup
+# -----------------------------------------------------------------------------
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Global DB connection (for endpoints using the database)
+# Global variables for the database connection and text embedder
 db_connection = None
+embedder = None
 
 # Custom header name for passing the thread ID (used by chat endpoints)
 THREAD_ID_HEADER = 'X-Thread-ID'
-embedder = None
 
-# ----------------------------
-# ENDPOINT DESCRIPTIONS
-# ----------------------------
+# =============================================================================
+# API Endpoints
+# =============================================================================
+
 @app.route('/')
 def home():
+    """
+    Home endpoint that returns an HTML page with descriptions of the available API endpoints.
+    """
     return """
     <!doctype html>
     <html lang="en">
@@ -37,39 +47,14 @@ def home():
         <meta charset="utf-8">
         <title>Journal Companion API</title>
         <style>
-            body {
-                font-family: Arial, sans-serif;
-                background-color: #f4f4f4;
-                margin: 40px;
-            }
-            .container {
-                background-color: #fff;
-                padding: 20px;
-                border-radius: 5px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            }
-            h1 {
-                color: #333;
-            }
-            ul {
-                list-style-type: none;
-                padding: 0;
-            }
-            li {
-                margin: 5px 0;
-                padding: 5px;
-                border-bottom: 1px solid #eee;
-            }
-            li:last-child {
-                border-bottom: none;
-            }
-            a {
-                color: #007BFF;
-                text-decoration: none;
-            }
-            a:hover {
-                text-decoration: underline;
-            }
+            body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 40px; }
+            .container { background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+            h1 { color: #333; }
+            ul { list-style-type: none; padding: 0; }
+            li { margin: 5px 0; padding: 5px; border-bottom: 1px solid #eee; }
+            li:last-child { border-bottom: none; }
+            a { color: #007BFF; text-decoration: none; }
+            a:hover { text-decoration: underline; }
         </style>
     </head>
     <body>
@@ -88,24 +73,29 @@ def home():
     </html>
     """
 
-# ----------------------------
-# Journal Sumbission / Summarization
-# ----------------------------
+# -----------------------------------------------------------------------------
+# Journal Submission / Summarization Endpoints
+# -----------------------------------------------------------------------------
+
 @app.route("/add_journal_entry", methods=["POST", "OPTIONS"])
 def add_journal_entry():
+    """
+    Endpoint to add a journal entry to the database.
+    Expects a JSON payload with 'user_id', 'title', and 'content'.
+    """
     if request.method == "OPTIONS":
         return "", 200  # Handle preflight request
-    data = request.get_json()
 
-    # Extract user_id, title, and content from request data
+    data = request.get_json()
     user_id = data.get("user_id")
     title = data.get("title")
     content = data.get("content")
 
+    # Validate required fields
     if not user_id or not title or not content:
         return jsonify({"error": "Missing user_id, title, or content"}), 400
 
-    # Insert journal entry into database
+    # Insert journal entry into the database
     try:
         insert_query = """
             INSERT INTO journals (user_id, title, content, entry_date, ai_summary_consent, content_summary)
@@ -118,11 +108,14 @@ def add_journal_entry():
 
 @app.route("/summarize_latest_entry/<int:user_id>", methods=["POST"])
 def summarize_latest_entry(user_id):
-    # Check database connection
+    """
+    Endpoint to generate a summary for the latest journal entry of a user.
+    Uses the LLM to generate a summary and updates the database.
+    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
 
-    # Fetch the most recent journal entry for the user
+    # Fetch the most recent journal entry for the given user
     query = """
         SELECT journal_id, content FROM journals
         WHERE user_id = %s
@@ -137,7 +130,7 @@ def summarize_latest_entry(user_id):
 
     journal_id, content = result
 
-    # Generate summary using OpenAI API
+    # Generate summary using the LLM
     try:
         gpt = LLM()
         summary = gpt.ask(
@@ -158,17 +151,19 @@ def summarize_latest_entry(user_id):
     except Exception as e:
         return jsonify({"error": f"Error updating journal entry: {e}"}), 500
 
-
-# ----------------------------
+# -----------------------------------------------------------------------------
 # Journal Companion / Chat Endpoints
-# ----------------------------
+# -----------------------------------------------------------------------------
+
 @app.route('/journal-entry', methods=['POST'])
 def handle_journal_entry():
-    """Endpoint to receive journal entries. Expects X-Thread-ID header for existing convos."""
+    """
+    Endpoint to handle journal entries in a chat-style format.
+    Expects a JSON payload with the 'entry' key and an optional X-Thread-ID header.
+    """
     data = request.json
     entry_text = data.get('entry')
-    # Get thread_id from header if present
-    thread_id = request.headers.get(THREAD_ID_HEADER)
+    thread_id = request.headers.get(THREAD_ID_HEADER)  # May be None for new threads
 
     if not entry_text:
         return jsonify({"error": "No entry text provided"}), 400
@@ -176,14 +171,15 @@ def handle_journal_entry():
     print(f"Received journal entry request (Header Thread ID: {thread_id or 'None - will create new'})")
 
     try:
-        # Pass thread_id (which might be None) to the llm function
-        response_text, used_thread_id = llm.get_assistant_response(thread_id, entry_text, is_journal_entry=True)
+        # Process the journal entry using the assistant (stateful conversation)
+        response_text, used_thread_id = llm.get_assistant_response(
+            thread_id, entry_text, is_journal_entry=True
+        )
 
-        # Always return the thread_id used so the client can keep track
+        # Return the assistant's response and the thread ID used
         if response_text.startswith("Error:"):
             return jsonify({"error": response_text, "thread_id": used_thread_id}), 500
         else:
-            # Success: return response and the thread_id for the next request
             return jsonify({"response": response_text, "thread_id": used_thread_id})
     except Exception as e:
         print(f"Unhandled exception in /journal-entry endpoint: {e}")
@@ -191,30 +187,33 @@ def handle_journal_entry():
 
 @app.route('/chat', methods=['POST'])
 def handle_chat():
-    """Endpoint to receive chat messages. Requires X-Thread-ID header."""
+    """
+    Endpoint to handle chat messages.
+    Requires a JSON payload with the 'message' key and an existing X-Thread-ID header.
+    """
     data = request.json
     message_text = data.get('message')
-    # Get thread_id from header - *required* for chat context
     thread_id = request.headers.get(THREAD_ID_HEADER)
 
     if not message_text:
         return jsonify({"error": "No message text provided"}), 400
 
     if not thread_id:
-        # Enforce that chat requires an existing conversation thread
-        return jsonify({"error": f"Missing {THREAD_ID_HEADER} header. Chat requires an existing thread ID."}), 400
+        return jsonify({
+            "error": f"Missing {THREAD_ID_HEADER} header. Chat requires an existing thread ID."
+        }), 400
 
     print(f"Received chat message request (Header Thread ID: {thread_id})")
 
     try:
-        # Pass the required thread_id to the llm function
-        response_text, used_thread_id = llm.get_assistant_response(thread_id, message_text, is_journal_entry=False)
+        # Process the chat message using the assistant (stateful conversation)
+        response_text, used_thread_id = llm.get_assistant_response(
+            thread_id, message_text, is_journal_entry=False
+        )
 
-        # Always return the thread_id used
         if response_text.startswith("Error:"):
             return jsonify({"error": response_text, "thread_id": used_thread_id}), 500
         else:
-            # Success: return response and the thread_id
             return jsonify({"response": response_text, "thread_id": used_thread_id})
     except Exception as e:
         print(f"Unhandled exception in /chat endpoint: {e}")
@@ -222,9 +221,13 @@ def handle_chat():
 
 @app.route('/fetch_journals/<int:user_id>', methods=["GET", "OPTIONS"])
 def fetch_journals(user_id):
+    """
+    Endpoint to fetch journal entries for a user.
+    NOTE: The SQL query is currently hard-coded to use user_id=1.
+    """
     if request.method == "OPTIONS":
         return "", 200  # Handle preflight request
-    # Check database connection 
+
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     
@@ -242,8 +245,8 @@ def fetch_journals(user_id):
                 "id": journal[3],
                 "title": journal[0], 
                 "entry_date": journal[1].strftime("%Y-%m-%d"),
-                "content": journal[2] 
-            } 
+                "content": journal[2]
+            }
             for journal in journals
         ]
         return jsonify({"journals": journal_entries}), 200
@@ -252,11 +255,14 @@ def fetch_journals(user_id):
 
 @app.route('/journal_consent_true/<int:user_id>', methods=["POST", "OPTIONS"])
 def journal_consent_true(user_id):
+    """
+    Endpoint to update the latest journal entry's consent flag to allow AI summaries.
+    """
     if request.method == "OPTIONS":
         return "", 200  # Handle preflight request
 
     try:
-        # Find the latest journal entry for the user
+        # Fetch the latest journal entry for the user
         query = """
             SELECT journal_id FROM journals
             WHERE user_id = %s
@@ -271,32 +277,33 @@ def journal_consent_true(user_id):
 
         latest_entry_id = latest_entry[0]
         print(latest_entry_id)
-        # Update ai_summary_consent to TRUE for the latest entry
+
+        # Update the consent flag to TRUE
         update_query = """
             UPDATE journals
             SET ai_summary_consent = TRUE
             WHERE journal_id = %s;
         """
         db_connection.execute_query(update_query, (latest_entry_id,))
-
         return jsonify({"message": "AI summary consent updated successfully"}), 200
     except Exception as e:
         return jsonify({"error": f"Error updating AI summary consent: {e}"}), 500
 
+# -----------------------------------------------------------------------------
+# Discover Section Endpoints
+# -----------------------------------------------------------------------------
 
-# ----------------------------
-# Discover Section
-# ----------------------------
 @app.route('/fetch_connections/<int:user_id>', methods=["GET", "OPTIONS"])
 def fetch_connections(user_id):
+    """
+    Endpoint to fetch all connections for a user.
+    """
     if request.method == "OPTIONS":
         return "", 200  # Handle preflight request
 
-    # Check database connection
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
 
-    # Query to fetch all connections for the user
     query = """
         SELECT id, matched_id, display_name, state, is_group, user_insight, matched_insight
         FROM public.connections
@@ -305,10 +312,9 @@ def fetch_connections(user_id):
     db_connection.execute_query(query, (user_id,))
     connections = db_connection.cursor.fetchall()
 
-    # Debugging log to check query results
+    # Debug: print the fetched connections
     print(f"Fetched connections for user {user_id}: {connections}")
 
-    # Format the response
     connection_list = [
         {
             "id": connection[0],
@@ -324,16 +330,17 @@ def fetch_connections(user_id):
 
     return jsonify({"connections": connection_list}), 200
 
-# ----------------------------
-# ASYNCRONOUS Vector AI to Find Friends
-# ----------------------------
 @app.route("/add_ai_insight/<int:id>", methods=["POST"])
 def ai_insights(id):
-    # Check database connection 
+    """
+    Endpoint to generate AI insights based on recent journal summaries.
+    Combines recent summaries, generates an insight via the LLM, creates an embedding,
+    and stores the result in the database.
+    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     
-    # Fetch journal summaries
+    # Fetch the latest 5 journal summaries with AI consent
     query = """
         SELECT content_summary FROM journals 
         WHERE user_id = %s AND ai_summary_consent = TRUE 
@@ -346,11 +353,11 @@ def ai_insights(id):
     if not summaries:
         return jsonify({"error": f"No journal entries available for user {id}"}), 404
 
-    # Combine summaries into one string
+    # Combine the summaries into one text string
     combined_summaries = " ".join(summaries)
     print(combined_summaries)
 
-    # Use OpenAI API to create insights
+    # Generate AI insight using the LLM
     try:
         gpt = LLM()
         insight_text = gpt.ask(
@@ -362,31 +369,33 @@ def ai_insights(id):
     except Exception as e:
         return jsonify({"error": f"Error generating AI insight: {e}"}), 500
 
-    # Generate embedding for the insight
+    # Generate an embedding for the insight text
     try:
         embedding = embedder.embed(insight_text)
     except Exception as e:
         return jsonify({"error": f"Error generating embedding: {e}"}), 500
 
-    # Insert the AI-generated insight and serialized embedding into the database
+    # Insert the AI-generated insight into the database
     try:
         insert_query = """
             INSERT INTO ai_insight (user_id, insights, insight_date, embedding)
             VALUES (%s, %s, %s, %s);
         """
         db_connection.execute_query(insert_query, (id, insight_text, datetime.now(), embedding))
-
         return jsonify({"message": "AI insight added successfully", "insight": insight_text, "embedding": embedding}), 200
     except Exception as e:
         return jsonify({"error": f"Error inserting AI insight into database: {e}"}), 500
 
 @app.route("/find_friend/<int:id>", methods=["POST"])
 def find_friend(id):
-    # Check database connection 
+    """
+    Endpoint to find a friend by matching AI insights.
+    Finds the most similar AI insight from another user and creates a connection entry.
+    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     
-    # Fetch the VECTOR representation of smost recent AI insight for the user
+    # Fetch the most recent AI insight for the user
     query = """
         SELECT embedding, insights
         FROM ai_insight 
@@ -395,12 +404,12 @@ def find_friend(id):
         LIMIT 1;
     """
     db_connection.execute_query(query, (id,))
-    embedding, user_A_insight = db_connection.cursor.fetchone()
-
-    if not embedding:
+    result = db_connection.cursor.fetchone()
+    if not result:
         return jsonify({"error": f"No AI insights available for user {id}"}), 404
-    
-    # Find the most similar insight using pgvector similarity search
+    embedding, user_A_insight = result
+
+    # Find the most similar insight from another user using vector similarity search
     similarity_query = """
         SELECT ai_insight.user_id, username, insights, embedding <-> %s AS distance
         FROM ai_insight JOIN users ON ai_insight.user_id = users.user_id
@@ -408,7 +417,6 @@ def find_friend(id):
         ORDER BY distance ASC
         LIMIT 1;
     """
-    
     db_connection.execute_query(similarity_query, (embedding, id))
     similar_insight = db_connection.cursor.fetchone()
 
@@ -417,24 +425,27 @@ def find_friend(id):
             
     similar_user_id, similar_username, user_B_insights, _ = similar_insight
     
-    # Insert connection entry into database
+    # Insert the connection entry into the database
     try:
         insert_query = """
             INSERT INTO connections (user_id, matched_id, state, display_name, is_group, user_insight, matched_insight)
             VALUES (%s, %s, %s, %s, %s, %s, %s);
         """
         db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False, user_A_insight, user_B_insights))
-        return jsonify({"message": f"Connection added successfully"}), 201
+        return jsonify({"message": "Connection added successfully"}), 201
     except Exception as e:
         return jsonify({"error": f"Error inserting connections: {e}"}), 500
-    
+
 @app.route("/find_groups/<int:user_id>", methods=["POST"])
 def find_groups(user_id):
-    # Check database connection
+    """
+    Endpoint to find groups based on AI insights.
+    Finds similar insights, generates a group chat name using the LLM, and inserts a group connection.
+    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     
-    # Step 1: Find the latest AI insight for the user
+    # Fetch the latest AI insight for the user
     query = """
         SELECT user_id, insights, embedding
         FROM ai_insight
@@ -442,18 +453,16 @@ def find_groups(user_id):
         ORDER BY insight_date DESC
         LIMIT 1;
     """
-   
     db_connection.execute_query(query, (user_id,))
     latest_insight = db_connection.cursor.fetchone()
 
-    latest_id, latest_text, latest_embedding = latest_insight # assign the values 
-
     if not latest_insight:
         return jsonify({"error": f"No AI insights found for user {user_id}"}), 404
-      
-    
-    # Step 2: Find similar insights using vector similarity (L2 distance)
-    similarity_threshold = 0.7  # Adjust based on your needs
+
+    latest_id, latest_text, latest_embedding = latest_insight
+
+    # Find similar insights using vector similarity (L2 distance)
+    similarity_threshold = 0.7  # Adjust based on your requirements
     query = """
         SELECT user_id, insights, embedding <-> %s AS distance
         FROM ai_insight
@@ -475,23 +484,29 @@ def find_groups(user_id):
     for insight in matched_insights:
         insights_text += f"- {insight['insight']}\n"
 
+    # Generate a group chat name using the LLM
     try:
         gpt = LLM()
         group_chat_name = gpt.ask(
-           f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
+            f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
             f"that would resonate with a Gen-Z audience. The name should feel effortless, modern, and relevant—"
             f"something people would actually want to use. Avoid clichés, overused internet slang, or anything overly dramatic. "
             f"Keep it fun yet authentic. Format your response as:\n\n"
             f'NAME: "Your group chat name here"\n\n'
             f"{insights_text}"
         )
-        print(jsonify({"original_user_id": user_id, "matched_user_ids": matched_ids, "matched_insights": matched_insights, "group_chat_name": group_chat_name }))
+        print(jsonify({
+            "original_user_id": user_id,
+            "matched_user_ids": matched_ids,
+            "matched_insights": matched_insights,
+            "group_chat_name": group_chat_name
+        }))
         match = re.search(r'NAME:\s*"([^"]+)"', group_chat_name)
         group_chat_name = match.group(1) if match else "Unnamed Group"
-
     except Exception as e:
         return jsonify({"error": f"Error generating group name: {e}"}), 500
     
+    # Insert the group connection entry into the database
     try:
         insert_query = """
             INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
@@ -504,7 +519,10 @@ def find_groups(user_id):
 
 @app.route("/ice_breaker/<int:id>", methods=["GET"])
 def ice_breaker(id):
-    # Check database connection 
+    """
+    Endpoint to generate a creative icebreaker statement for a connection.
+    Uses insights from the connection to prompt the LLM for a conversation starter.
+    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     
@@ -524,24 +542,26 @@ def ice_breaker(id):
         gpt = LLM()
         prompt = (
             "You are an assistant that helps spark conversations between users based on personal insights.\n"
-            "Say something like you guys should talk to one another\n"
-            "Given the two insights below, write one concise friendly and creative icebreaker statement to help the users begin chatting. "
+            "Say something like you guys should talk to one another.\n"
+            "Given the two insights below, write one concise, friendly, and creative icebreaker statement to help the users begin chatting. "
             "The tone should be light, engaging, and respectful. Avoid using emojis or overly casual language.\n\n"
             f"User 1 Insight: {insight1}\n"
             f"User 2 Insight: {insight2}\n\n"
         )
         icebreaker = gpt.ask(prompt)
         print(icebreaker)
-
         return jsonify({"ice_breaker": icebreaker}), 200
-
     except Exception as e:
         return jsonify({"error": f"Error generating ice breaker: {str(e)}"}), 500
 
-# ----------------------------
+# -----------------------------------------------------------------------------
 # Utility Functions for Database Connection
-# ----------------------------
+# -----------------------------------------------------------------------------
+
 def initialize_db_connection():
+    """
+    Initializes the global database connection using the provided credentials.
+    """
     global db_connection
     db_connection = DatabaseConnection(
         dbname="neondb",
@@ -553,18 +573,21 @@ def initialize_db_connection():
     db_connection.connect()
 
 def close_db_connection():
+    """
+    Closes the global database connection if it exists.
+    """
     if db_connection:
         db_connection.close()
 
-
-# ----------------------------
+# -----------------------------------------------------------------------------
 # Run the Flask Application
-# ----------------------------
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
+    # Initialize the text embedder and database connection before starting the server
     embedder = TextEmbedder()
     initialize_db_connection()
     try:
-        # Running with debug mode enabled; set use_reloader=False to prevent duplicate DB connections.
+        # Run Flask app with debug mode enabled and disable reloader to avoid duplicate DB connections
         app.run(debug=True, use_reloader=False)
     finally:
         close_db_connection()

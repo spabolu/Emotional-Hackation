@@ -56,6 +56,12 @@ export default function NewJournalEntry({ onClose, onSave }) {
       const responseData = await response.json();
       console.log('Journal entry saved successfully:', responseData);
 
+      // Show the consent dialog after saving
+      // setShowDialog(true);
+
+      // Show the consent dialog after saving
+      // setShowDialog(true);
+
       // Disable editing after saving
       setIsEditable(false);
 
@@ -212,61 +218,61 @@ export default function NewJournalEntry({ onClose, onSave }) {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-fuchsia-200 bg-white/50 flex justify-between">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="bg-white/60 border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
-          >
-            Cancel
-          </Button>
+         {/* Footer */}
+         {!showAiTherapist && (
+          <div className="p-4 border-t border-fuchsia-200 bg-white/50 flex justify-between">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="bg-white/60 border-fuchsia-200 hover:bg-fuchsia-50 hover:text-fuchsia-700"
+            >
+              Cancel
+            </Button>
 
           <Button
             onClick={handleSave}
             disabled={!isFormValid() || saving || !isEditable} // Disable if not editable
-            className="bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
+            className="text-white bg-fuchsia-600 hover:bg-fuchsia-700 disabled:bg-fuchsia-300"
           >
             {saving ? 'Saving...' : 'Save Entry'}
-          </Button>
-        </div>
+            </Button>
+          </div>
+        )}
       </motion.div>
 
       {/* Popup Dialog */}
       {showDialog && (
         <Dialog open={showDialog} onOpenChange={setShowDialog}>
-          <DialogContent className="fixed inset-0 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-auto">
-              <DialogHeader className="text-center">
-                <DialogTitle className="text-lg font-semibold text-gray-800">
-                  Use Your Data to Help Others?
-                </DialogTitle>
-              </DialogHeader>
-              <p className="text-sm text-gray-600 text-center mt-2">
-                Can we confidentially use this data to connect others and
-                improve their experience?
-              </p>
-              <DialogFooter className="flex justify-center gap-4 mt-4">
-                <Button
-                  onClick={() => {
-                    handleConsent(true);
-                    setShowDialog(false);
-                  }}
-                  className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
-                >
-                  Of Course!
-                </Button>
-                <Button
-                  onClick={() => {
-                    handleConsent(false);
-                    setShowDialog(false);
-                  }}
-                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
-                >
-                  No Thank You
-                </Button>
-              </DialogFooter>
-            </div>
+          <DialogContent className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full mx-auto">
+            <DialogHeader className="text-center">
+              <DialogTitle className="text-lg font-semibold text-gray-800">
+                Use Your Data to Help Others?
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-gray-600 text-center mt-2">
+              Can we confidentially use this data to connect others and improve
+              their experience?
+            </p>
+            <DialogFooter className="flex justify-center gap-4 mt-4">
+              <Button
+                onClick={() => {
+                  handleConsent(true);
+                  setShowDialog(false);
+                }}
+                className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+              >
+                Of Course!
+              </Button>
+              <Button
+                onClick={() => {
+                  handleConsent(false);
+                  setShowDialog(false);
+                }}
+                className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+              >
+                No Thank You
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
