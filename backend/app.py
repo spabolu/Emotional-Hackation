@@ -221,10 +221,7 @@ def handle_chat():
 
 @app.route('/fetch_journals/<int:user_id>', methods=["GET", "OPTIONS"])
 def fetch_journals(user_id):
-    """
-    Endpoint to fetch journal entries for a user.
-    NOTE: The SQL query is currently hard-coded to use user_id=1.
-    """
+
     if request.method == "OPTIONS":
         return "", 200  # Handle preflight request
 
@@ -233,7 +230,7 @@ def fetch_journals(user_id):
     
     query = """
         SELECT title, entry_date, content, journal_id FROM public.journals
-        WHERE user_id = 1
+        WHERE user_id = %s
         ORDER BY entry_date DESC
     """
     db_connection.execute_query(query, (user_id,))
@@ -330,13 +327,9 @@ def fetch_connections(user_id):
 
     return jsonify({"connections": connection_list}), 200
 
+# RUNS ASYNC 
 @app.route("/add_ai_insight/<int:id>", methods=["POST"])
 def ai_insights(id):
-    """
-    Endpoint to generate AI insights based on recent journal summaries.
-    Combines recent summaries, generates an insight via the LLM, creates an embedding,
-    and stores the result in the database.
-    """
     if db_connection is None:
         return jsonify({"error": "Database connection not established"}), 500
     

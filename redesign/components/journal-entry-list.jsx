@@ -17,7 +17,7 @@ export default function JournalEntryList() {
   useEffect(() => {
     const fetchEntries = async () => {
       try {
-        const userId = 1; // Replace with the actual user ID
+        const userId = 69; // Replace with the actual user ID
         const response = await fetch(
           `http://127.0.0.1:5000/fetch_journals/${userId}`
         );
