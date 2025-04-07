@@ -116,13 +116,13 @@ export default function DiscoverSection() {
                 key={connection.id}
                 name={connection.display_name}
                 photo={"/default-group-photo.png"} // Use default group photo
-                description={connection.matched_insight || "No description available"}
+                description={connection.most_recent_message || ""}
                 onConnect={() =>
                   handleConnect({
                     id: connection.id,
                     name: connection.display_name,
                     photo: "/default-avatar.png",
-                    description: connection.matched_insight,
+                    description: "",
                   })
                 }
               />
@@ -145,14 +145,14 @@ export default function DiscoverSection() {
             <MessagePreview
               key={user.id}
               name={user.display_name}
-              message={user.last_message || "No messages yet"} // Ensure `last_message` is used correctly
+              message={user.most_recent_message || "No messages yet"}
               photo={user.photo || "/default-avatar.png"} // Use default avatar if photo is missing
               onClick={() =>
                 handleConnect({
                   id: user.id,
                   name: user.display_name,
                   photo: user.photo || "/default-avatar.png",
-                  description: user.matched_insight,
+                  description: "",
                 })
               }
             />

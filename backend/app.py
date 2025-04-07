@@ -302,9 +302,10 @@ def fetch_connections(user_id):
         return jsonify({"error": "Database connection not established"}), 500
 
     query = """
-        SELECT id, matched_id, display_name, state, is_group, user_insight, matched_insight
+        SELECT id, matched_id, display_name, state, is_group, user_insight, matched_insight, most_recent_message
         FROM public.connections
         WHERE user_id = %s
+        ORDER BY id DESC NULLS LAST;
     """
     db_connection.execute_query(query, (user_id,))
     connections = db_connection.cursor.fetchall()
@@ -321,6 +322,7 @@ def fetch_connections(user_id):
             "is_group": connection[4],
             "user_insight": connection[5],
             "matched_insight": connection[6],
+            "most_recent_message": connection[7],
         }
         for connection in connections
     ]
@@ -418,13 +420,22 @@ def find_friend(id):
             
     similar_user_id, similar_username, user_B_insights, _ = similar_insight
     
+    # Get the about me of the friend
+    about_me_query = """
+        SELECT about_me
+        FROM users
+        WHERE user_id = %s;
+    """
+    db_connection.execute_query(about_me_query, (similar_user_id,))
+    about_me = db_connection.cursor.fetchone()
+    
     # Insert the connection entry into the database
     try:
         insert_query = """
-            INSERT INTO connections (user_id, matched_id, state, display_name, is_group, user_insight, matched_insight)
-            VALUES (%s, %s, %s, %s, %s, %s, %s);
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group, user_insight, matched_insight, most_recent_message)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
         """
-        db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False, user_A_insight, user_B_insights))
+        db_connection.execute_query(insert_query, (id, [similar_user_id], 'suggested', similar_username, False, user_A_insight, user_B_insights, about_me))
         return jsonify({"message": "Connection added successfully"}), 201
     except Exception as e:
         return jsonify({"error": f"Error inserting connections: {e}"}), 500
@@ -455,7 +466,7 @@ def find_groups(user_id):
     latest_id, latest_text, latest_embedding = latest_insight
 
     # Find similar insights using vector similarity (L2 distance)
-    similarity_threshold = 0.7  # Adjust based on your requirements
+    similarity_threshold = 0.8      # Adjust based on your requirements
     query = """
         SELECT user_id, insights, embedding <-> %s AS distance
         FROM ai_insight
@@ -505,10 +516,13 @@ def find_groups(user_id):
     # Insert the group connection entry into the database
     try:
         insert_query = """
-            INSERT INTO connections (user_id, matched_id, state, display_name, is_group)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO connections (user_id, matched_id, state, display_name, is_group, most_recent_message)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """
-        db_connection.execute_query(insert_query, (user_id, matched_ids, "suggested", group_chat_name, True))
+            
+        hardcoded_message = "5 members joined"
+        
+        db_connection.execute_query(insert_query, (user_id, matched_ids, "suggested", group_chat_name, True, hardcoded_message))
         return jsonify({"message": "Connection entry added successfully"}), 201
     except Exception as e:
         return jsonify({"error": f"Error inserting connection entry: {e}"}), 500
