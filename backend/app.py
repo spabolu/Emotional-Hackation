@@ -484,8 +484,9 @@ def find_groups(user_id):
             f"Given the following insights, generate a short, catchy, and natural-sounding group chat name "
             f"that would resonate with a Gen-Z audience. The name should feel effortless, modern, and relevant—"
             f"something people would actually want to use. Avoid clichés, overused internet slang, or anything overly dramatic. "
-            f"Keep it fun yet authentic. Format your response as:\n\n"
+            f"Keep it fun yet authentic. Strictly follow this format:\n\n"
             f'NAME: "Your group chat name here"\n\n'
+            f"Do not include any additional text, symbols, or explanations. Only return the name in the specified format.\n\n"
             f"{insights_text}"
         )
         print(jsonify({
@@ -496,6 +497,8 @@ def find_groups(user_id):
         }))
         match = re.search(r'NAME:\s*"([^"]+)"', group_chat_name)
         group_chat_name = match.group(1) if match else "Unnamed Group"
+        print(group_chat_name)
+
     except Exception as e:
         return jsonify({"error": f"Error generating group name: {e}"}), 500
     

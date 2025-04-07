@@ -259,7 +259,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
                   handleConsent(true);
                   setShowDialog(false);
                 }}
-                className="bg-teal-600 text-white px-4 py-2 rounded-md hover:bg-teal-700"
+                className="bg-fuchsia-600 text-white px-4 py-2 rounded-md hover:bg-fuchsia-700"
               >
                 Of Course!
               </Button>
