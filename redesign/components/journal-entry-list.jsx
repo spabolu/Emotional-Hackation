@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarIcon, ChevronRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
-import JournalEntryDetail from "@/components/journal-entry-detail";
+import { CalendarIcon, ChevronRight, Trash } from 'lucide-react'; // Import the Trash icon
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { motion } from 'framer-motion';
+import JournalEntryDetail from '@/components/journal-entry-detail';
 
 export default function JournalEntryList() {
   const [entries, setEntries] = useState([]); // State to store journal entries
@@ -46,6 +46,25 @@ export default function JournalEntryList() {
     setSelectedEntryId(id);
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5000/delete_journal_entry/${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Error deleting journal entry: ${response.statusText}`);
+      }
+      setEntries((prevEntries) =>
+        prevEntries.filter((entry) => entry.id !== id)
+      ); // Remove the deleted entry from the state
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   const selectedEntry = entries.find((entry) => entry.id === selectedEntryId);
 
   if (loading) {
@@ -81,9 +100,10 @@ export default function JournalEntryList() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-emerald-700 hover:text-fuchsia-700 hover:bg-fuchsia-100"
+                className="text-red-600 hover:text-red-800 hover:bg-red-100"
+                onClick={() => handleDelete(entry.id)} // Add a delete handler
               >
-                <ChevronRight className="h-4 w-4" />
+                <Trash className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-emerald-800 mt-2 line-clamp-2">
