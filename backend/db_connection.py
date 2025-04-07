@@ -36,7 +36,8 @@ class DatabaseConnection:
                 user=self.user,
                 password=self.password,
                 host=self.host,
-                port=self.port
+                port=self.port,
+                sslmode=self.sslmode  # This is key for Neon on Render!
             )
             self.cursor = self.connection.cursor()
             print("Database connected successfully.")
