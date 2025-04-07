@@ -25,6 +25,8 @@ export default function NewJournalEntry({ onClose, onSave }) {
   const [aiSummaryConsent, setAiSummaryConsent] = useState(null); // State to store user consent
   const [isEditable, setIsEditable] = useState(true); // State to control editability of fields
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'; // Define API_URL
+
   const contentRef = useRef(null); // For scrolling container
   const therapistRef = useRef(null); // For scrolling to therapist
 
@@ -40,7 +42,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
 
     try {
       setSaving(true);
-      const response = await fetch('http://127.0.0.1:5000/add_journal_entry', {
+      const response = await fetch(`${API_URL}/add_journal_entry`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -94,7 +96,7 @@ export default function NewJournalEntry({ onClose, onSave }) {
 
       // Send the consent value to the backend
       const response = await fetch(
-        'http://127.0.0.1:5000/journal_consent_true/1',
+        `${API_URL}/journal_consent_true/1`,
         {
           method: 'POST',
           headers: {

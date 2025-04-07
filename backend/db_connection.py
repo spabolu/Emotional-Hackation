@@ -6,7 +6,7 @@ class DatabaseConnection:
     A class to handle PostgreSQL database connections and query executions.
     """
 
-    def __init__(self, dbname, user, password, host="localhost", port="5432"):
+    def __init__(self, dbname, user, password, host, port="5432"):
         """
         Initialize the database connection parameters.
 
@@ -24,6 +24,7 @@ class DatabaseConnection:
         self.port = port
         self.connection = None
         self.cursor = None
+        self.sslmode = 'require'
 
     def connect(self):
         """
@@ -35,7 +36,8 @@ class DatabaseConnection:
                 user=self.user,
                 password=self.password,
                 host=self.host,
-                port=self.port
+                port=self.port,
+                sslmode=self.sslmode  # This is key for Neon on Render!
             )
             self.cursor = self.connection.cursor()
             print("Database connected successfully.")

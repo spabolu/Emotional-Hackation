@@ -45,7 +45,7 @@ def home():
     <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>Journal Companion API</title>
+        <title>MindfulMe</title>
         <style>
             body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 40px; }
             .container { background-color: #fff; padding: 20px; border-radius: 5px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -59,14 +59,21 @@ def home():
     </head>
     <body>
         <div class="container">
-            <h1>Journal Companion API is running.</h1>
+            <h1>Team Sparky Coders. MindfulMe API is running.</h1>
             <p>Available endpoints:</p>
             <ul>
                 <li><strong>POST</strong> <a href="/journal-entry">/journal-entry</a> (for chat-style journal entries using header thread IDs)</li>
                 <li><strong>POST</strong> <a href="/chat">/chat</a> (for chat messages, requires thread ID header)</li>
-                <li><strong>GET</strong> <a href="/users/&lt;id&gt;">/users/&lt;id&gt;</a> (retrieve user by ID)</li>
-                <li><strong>POST</strong> <a href="/add_ai_insight/&lt;id&gt;">/add_ai_insight/&lt;id&gt;</a> (generate AI insight using recent journal entries)</li>
                 <li><strong>POST</strong> <a href="/add_journal_entry">/add_journal_entry</a> (add a journal entry to the database)</li>
+                <li><strong>POST</strong> <a href="/summarize_latest_entry/&lt;user_id&gt;">/summarize_latest_entry/&lt;user_id&gt;</a> (generate summary for latest entry)</li>
+                <li><strong>GET</strong> <a href="/fetch_journals/&lt;user_id&gt;">/fetch_journals/&lt;user_id&gt;</a> (retrieve journal entries for a user)</li>
+                <li><strong>POST</strong> <a href="/journal_consent_true/&lt;user_id&gt;">/journal_consent_true/&lt;user_id&gt;</a> (update AI summary consent)</li>
+                <li><strong>GET</strong> <a href="/fetch_connections/&lt;user_id&gt;">/fetch_connections/&lt;user_id&gt;</a> (retrieve connections for a user)</li>
+                <li><strong>POST</strong> <a href="/add_ai_insight/&lt;id&gt;">/add_ai_insight/&lt;id&gt;</a> (generate AI insight using recent journal entries)</li>
+                <li><strong>POST</strong> <a href="/find_friend/&lt;id&gt;">/find_friend/&lt;id&gt;</a> (find similar users based on AI insights)</li>
+                <li><strong>POST</strong> <a href="/find_groups/&lt;user_id&gt;">/find_groups/&lt;user_id&gt;</a> (find group matches based on AI insights)</li>
+                <li><strong>GET</strong> <a href="/ice_breaker/&lt;id&gt;">/ice_breaker/&lt;id&gt;</a> (generate icebreaker for a connection)</li>
+                <li><strong>POST</strong> <a href="/accept_connection">/accept_connection</a> (accept a connection request)</li>
             </ul>
         </div>
     </body>
@@ -623,6 +630,7 @@ if __name__ == '__main__':
     initialize_db_connection()
     try:
         # Run Flask app with debug mode enabled and disable reloader to avoid duplicate DB connections
-        app.run(debug=True, use_reloader=False)
+        print("Started Flask server...")
+        app.run(use_reloader=False)
     finally:
         close_db_connection()

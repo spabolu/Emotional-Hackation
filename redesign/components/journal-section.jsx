@@ -35,6 +35,28 @@ export default function JournalSection() {
         </Button>
       </div>
 
+      <div className="flex items-center justify-between bg-white/80 backdrop-blur border-emerald-200 shadow-sm mb-6 p-4 rounded-lg">
+        <div>
+          <h3 className="text-lg font-semibold text-fuchsia-900">
+            Mental Health Resources
+          </h3>
+          <p className="text-sm text-emerald-700">
+            Explore ASU's mental health resources for additional support.
+          </p>
+        </div>
+        <Button
+          className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white ml-4"
+          onClick={() =>
+            window.open(  
+              'https://eoss.asu.edu/counseling/mental-health-resources',
+              '_blank'
+            )
+          }
+        >
+          Visit Resources
+        </Button>
+      </div>
+
       <Card className="bg-white/80 backdrop-blur border-emerald-200 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl text-fuchsia-900">
