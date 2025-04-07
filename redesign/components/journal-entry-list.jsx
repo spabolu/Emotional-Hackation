@@ -13,13 +13,15 @@ export default function JournalEntryList() {
   const [loading, setLoading] = useState(true); // State for loading
   const [error, setError] = useState(null); // State for error handling
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'; // Define API_URL
+
   // Fetch journal entries from the API
   useEffect(() => {
     const fetchEntries = async () => {
       try {
         const userId = 69; // Replace with the actual user ID
         const response = await fetch(
-          `http://127.0.0.1:5000/fetch_journals/${userId}`
+          `${API_URL}/fetch_journals/${userId}`
         );
         if (!response.ok) {
           throw new Error(`Error fetching journals: ${response.statusText}`);
@@ -49,7 +51,7 @@ export default function JournalEntryList() {
   const handleDelete = async (id) => {
     try {
       const response = await fetch(
-        `http://127.0.0.1:5000/delete_journal_entry/${id}`,
+        `${API_URL}/delete_journal_entry/${id}`,
         {
           method: 'DELETE',
         }

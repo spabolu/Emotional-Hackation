@@ -609,6 +609,7 @@ if __name__ == '__main__':
     initialize_db_connection()
     try:
         # Run Flask app with debug mode enabled and disable reloader to avoid duplicate DB connections
-        app.run(debug=True, use_reloader=False)
+        print("Started Flask server...")
+        app.run(use_reloader=False)
     finally:
         close_db_connection()

@@ -15,6 +15,8 @@ export default function DiscoverSection() {
   const [error, setError] = useState(null); // State for error handling
   const [refreshConnections, setRefreshConnections] = useState(false); // State to trigger refetch
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000'; // Define API_URL
+
   // Fetch connections from the API
   useEffect(() => {
     const fetchConnections = async () => {
@@ -23,7 +25,7 @@ export default function DiscoverSection() {
 
         // Fetch all connections
         const response = await fetch(
-          `http://127.0.0.1:5000/fetch_connections/${userId}`
+          `${API_URL}/fetch_connections/${userId}`
         );
         if (!response.ok) {
           throw new Error(
@@ -52,7 +54,7 @@ export default function DiscoverSection() {
 
   const handleConnect = async (selectedUser) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/accept_connection", {
+      const response = await fetch(`${API_URL}/accept_connection`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

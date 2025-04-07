@@ -9,6 +9,8 @@ import BoringAvatar from "boring-avatars";
 
 export function Chat({ user, onBack, onFirstMessage }) {
   const [messages, setMessages] =  useState([]);
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
 
   // Fetch icebreaker from the API
   useEffect(() => {
@@ -16,7 +18,7 @@ export function Chat({ user, onBack, onFirstMessage }) {
       try {
         // Fetch all icebreaker
         const response = await fetch(
-          `http://127.0.0.1:5000/ice_breaker/${15}`
+          `${API_URL}/ice_breaker/${15}`
         );
         if (!response.ok) {
           throw new Error(

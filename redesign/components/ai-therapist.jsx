@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000';
+
 export default function AiTherapist({
   threadId = "",
   setThreadId,
@@ -57,7 +59,7 @@ setShowGif(false); // calm squirrel for typing dots
             headers["X-Thread-ID"] = internalThreadId;
           }
 
-          const response = await fetch("http://127.0.0.1:5000/journal-entry", {
+          const response = await fetch(`${API_URL}/journal-entry`, {
             method: "POST",
             headers,
             body: JSON.stringify({ entry: journalEntry }),
@@ -152,7 +154,7 @@ setShowGif(false); // calm squirrel for typing dots
         headers["X-Thread-ID"] = internalThreadId;
       }
   
-      const response = await fetch("http://127.0.0.1:5000/chat", {
+      const response = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers,
         body: JSON.stringify({ message: userMessage }),
