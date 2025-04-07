@@ -554,6 +554,31 @@ def ice_breaker(id):
     except Exception as e:
         return jsonify({"error": f"Error generating ice breaker: {str(e)}"}), 500
 
+@app.route("/accept_connection", methods=["POST"])
+def accept_connection():
+    if db_connection is None:
+        return jsonify({"error": "Database connection not established"}), 500
+
+    data = request.get_json()
+    connection_id = data.get("connection_id")
+
+    if not connection_id:
+        return jsonify({"error": "Missing connection_id"}), 400
+
+    try:
+        # Update the status to 'accepted'
+        update_query = """
+            UPDATE public.connections
+            SET state = 'accepted'
+            WHERE id = %s;
+        """
+        db_connection.execute_query(update_query, (connection_id,))
+        return jsonify({"message": "Connection accepted successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Database error: {e}"}), 500
+
+
 # -----------------------------------------------------------------------------
 # Utility Functions for Database Connection
 # -----------------------------------------------------------------------------

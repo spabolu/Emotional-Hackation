@@ -13,12 +13,13 @@ export default function DiscoverSection() {
   const [messages, setMessages] = useState([]); // State for messages
   const [currentChat, setCurrentChat] = useState(null); // State for the current chat
   const [error, setError] = useState(null); // State for error handling
+  const [refreshConnections, setRefreshConnections] = useState(false); // State to trigger refetch
 
   // Fetch connections from the API
   useEffect(() => {
     const fetchConnections = async () => {
       try {
-        const userId = 7; // Replace with the actual user ID
+        const userId = 2; // Replace with the actual user ID
 
         // Fetch all connections
         const response = await fetch(
@@ -30,7 +31,6 @@ export default function DiscoverSection() {
           );
         }
         const data = await response.json();
-        console.log("All connections (raw):", data); // Debugging log
 
         // Split connections into suggested and accepted
         const suggested = data.connections.filter(
@@ -40,23 +40,36 @@ export default function DiscoverSection() {
           (connection) => connection.state === "accepted"
         );
 
-        console.log("Suggested connections:", suggested); // Debugging log
-        console.log("Accepted connections:", accepted); // Debugging log
-
         setSuggestedUsers(suggested);
         setAcceptedUsers(accepted);
       } catch (err) {
-        console.error("Error fetching connections:", err); // Debugging log
         setError(err.message);
       }
     };
 
     fetchConnections();
-  }, []);
+  }, [refreshConnections]);
 
-  const handleConnect = (user) => {
-    setCurrentChat(user);
-  };
+  const handleConnect = async (selectedUser) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/accept_connection", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ connection_id: selectedUser.id }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Error notifying backend: ${response.statusText}`);
+      }
+  
+      setCurrentChat(selectedUser);
+      setRefreshConnections((prev) => !prev); // Toggle refreshConnections to trigger useEffect
+    } catch (err) {
+      console.error("Failed to notify backend:", err);
+    }
+  };  
 
   const handleFirstMessage = (messageContent) => {
     if (currentChat) {
@@ -72,9 +85,6 @@ export default function DiscoverSection() {
       );
     }
   };
-
-  console.log("Suggested users:", suggestedUsers); // Debugging log
-  console.log("Accepted users:", acceptedUsers); // Debugging log
 
   if (error) {
     return <p className="text-red-500">Error: {error}</p>;
@@ -105,7 +115,7 @@ export default function DiscoverSection() {
               <UserCard
                 key={connection.id}
                 name={connection.display_name}
-                photo={"/default-avatar.png"} // Add default avatar since your backend isn't returning photos
+                photo={"/default-group-photo.png"} // Use default group photo
                 description={connection.matched_insight || "No description available"}
                 onConnect={() =>
                   handleConnect({
@@ -125,6 +135,7 @@ export default function DiscoverSection() {
         </div>
       </div>
 
+      {/* WILL NOT CLICK INTO HERE */}
       <h3 className="text-xl font-semibold text-gray-800 mb-4">
         Recent Messages
       </h3>
