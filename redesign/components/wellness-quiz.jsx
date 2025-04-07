@@ -185,7 +185,7 @@ export default function WellnessQuiz() {
           <Button
             onClick={showFeedback ? handleNext : handleCheckAnswer}
             disabled={!selectedAnswers[currentQuestion]}
-            className={`w-full ${showFeedback ? "bg-emerald-600 hover:bg-emerald-700" : "bg-fuchsia-600 hover:bg-fuchsia-700"
+            className={`text-white w-full ${showFeedback ? "bg-emerald-600 hover:bg-emerald-700" : "bg-fuchsia-600 hover:bg-fuchsia-700"
               }`}
           >
             {showFeedback
