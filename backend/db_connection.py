@@ -6,7 +6,7 @@ class DatabaseConnection:
     A class to handle PostgreSQL database connections and query executions.
     """
 
-    def __init__(self, dbname, user, password, host="localhost", port="5432"):
+    def __init__(self, dbname, user, password, host, port="5432"):
         """
         Initialize the database connection parameters.
 
