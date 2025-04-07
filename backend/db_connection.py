@@ -24,6 +24,7 @@ class DatabaseConnection:
         self.port = port
         self.connection = None
         self.cursor = None
+        self.sslmode = 'require'
 
     def connect(self):
         """
