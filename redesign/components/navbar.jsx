@@ -36,7 +36,7 @@ export default function Navbar() {
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 bg-white">
+          <DropdownMenuContent align="end" className="w-64 bg-white" onCloseAutoFocus={(e) => e.preventDefault()}>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer">
@@ -44,12 +44,16 @@ export default function Navbar() {
               <span>Profile</span>
             </DropdownMenuItem>
 
-            <DropdownMenuCheckboxItem checked={isAnonymous} onCheckedChange={setIsAnonymous} className="cursor-pointer">
+            <DropdownMenuCheckboxItem 
+              checked={isAnonymous} 
+              onCheckedChange={setIsAnonymous}
+              className="cursor-pointer"
+              onSelect={(e) => e.preventDefault()}>
               <div className="flex items-center">
                 <EyeOff className="mr-2 h-4 w-4" />
                 <div>
                   <div className="text-sm">Connect Anonymously</div>
-                  <p className="text-xs text-muted-foreground">Hide your identity on the discover page</p>
+                  <p className="text-xs text-muted-foreground">Hide identity on the discover page</p>
                 </div>
               </div>
             </DropdownMenuCheckboxItem>
